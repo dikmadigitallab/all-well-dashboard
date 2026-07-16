@@ -70,7 +70,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <div className="p-3 border-t border-sidebar-border space-y-2">
           <div className="px-3 py-2 rounded-md bg-sidebar-accent/40 text-xs">
-            <div className="font-medium truncate">{user?.email}</div>
+            <div className="font-medium truncate">{user?.fullName ?? user?.username ?? "Usuário"}</div>
             <div className="mt-1 flex items-center gap-1 text-sidebar-foreground/80">
               {isAdmin ? (
                 <>
