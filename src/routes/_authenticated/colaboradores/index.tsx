@@ -94,7 +94,7 @@ function ColabList() {
             <Button variant="outline" size="sm" onClick={exportar}><Download className="h-4 w-4 mr-2" />Exportar</Button>
             {isAdmin && (
               <Button asChild size="sm">
-                <Link to="/colaboradores/novo"><Plus className="h-4 w-4 mr-2" />Novo colaborador</Link>
+                <Link to="/colaboradores/$id" params={{ id: "novo" }}><Plus className="h-4 w-4 mr-2" />Novo colaborador</Link>
               </Button>
             )}
           </>
