@@ -3,18 +3,16 @@ import { useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { Upload, FileSpreadsheet, CheckCircle2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import type { ColaboradorInsert } from "@/lib/colaboradores";
 
 export const Route = createFileRoute("/_authenticated/importar")({
   component: ImportarPage,
 });
 
 // Map planilha column headers -> database fields (case/space insensitive)
-const HEADER_MAP: Record<string, keyof ColaboradorInsert> = {
+const HEADER_MAP: Record<string, string> = {
   nome: "nome",
   empresa: "empresa",
   area: "area",
@@ -70,22 +68,20 @@ function excelDateToISO(v: unknown): string | null {
   return null;
 }
 
-function parseSheet(rows: Record<string, unknown>[]): ColaboradorInsert[] {
+function parseSheet(rows: Record<string, unknown>[]): Record<string, unknown>[] {
   return rows
     .map((raw) => {
-      const rec: ColaboradorInsert = { nome: "" };
+      const rec: Record<string, unknown> = { nome: "" };
       for (const [k, v] of Object.entries(raw)) {
         const key = HEADER_MAP[norm(k)];
         if (!key || v == null || v === "") continue;
         if (key === "nascimento" || key === "ultimo_exame" || key === "proximo_exame") {
-          (rec as Record<string, unknown>)[key] = excelDateToISO(v);
+          rec[key] = excelDateToISO(v);
         } else if (key === "periodicidade_meses") {
           const n = parseInt(String(v).replace(/\D/g, ""));
-          if (!Number.isNaN(n)) rec.periodicidade_meses = n;
-        } else if (key === "cpf" || key === "rg" || key === "pis" || key === "matricula_sap") {
-          (rec as Record<string, unknown>)[key] = String(v).trim();
+          if (!Number.isNaN(n)) rec[key] = n;
         } else {
-          (rec as Record<string, unknown>)[key] = String(v).trim();
+          rec[key] = String(v).trim();
         }
       }
       return rec;
@@ -97,7 +93,7 @@ function ImportarPage() {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<ColaboradorInsert[]>([]);
+  const [preview, setPreview] = useState<Record<string, unknown>[]>([]);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState<{ inserted: number; skipped: number } | null>(null);
@@ -124,12 +120,29 @@ function ImportarPage() {
     let skipped = 0;
     for (let i = 0; i < preview.length; i += BATCH) {
       const chunk = preview.slice(i, i + BATCH);
-      const { data, error } = await supabase.from("colaboradores").insert(chunk).select("id");
-      if (error) {
-        toast.error("Erro no lote", { description: error.message });
-        skipped += chunk.length;
-      } else {
-        inserted += data?.length ?? 0;
+      try {
+        const res = await fetch("/api/colaboradores", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(chunk),
+        });
+        if (!res.ok) throw new Error(await res.text());
+        inserted += chunk.length;
+      } catch (err) {
+        console.error("[import] batch error:", err);
+        // Tenta inserir um por um
+        for (const row of chunk) {
+          try {
+            await fetch("/api/colaboradores", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(row),
+            });
+            inserted++;
+          } catch {
+            skipped++;
+          }
+        }
       }
       setProgress(Math.round(((i + chunk.length) / preview.length) * 100));
     }

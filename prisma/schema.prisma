@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ───
+
+enum AppRole {
+  admin
+  gestor
+}
+
+enum AsoStatus {
+  em_dia
+  a_vencer
+  vencido
+  sem_exame
+}
+
+enum ExameTipo {
+  admissional
+  periodico
+  demissional
+  retorno_ao_trabalho
+  mudanca_riscos
+  complementar
+}
+
+enum ExameStatus {
+  agendado
+  compareceu
+  faltou
+  pendente
+  cancelado
+  realizado
+}
+
+enum PendenciaMotivo {
+  agendamento
+  falta_colaborador
+  documentacao
+  afastamento
+  recusa
+  outro
+}
+
+enum AlertaTipo {
+  aso_vencendo
+  aso_vencido
+  exame_pendente
+  falta_exame
+  reagendamento
+}
+
+// ─── Tables ───
+
+/// Vinculado ao auth.users (não gerenciado pelo Prisma)
+model Profile {
+  id        String   @id @default(uuid()) @db.Uuid
+  full_name String?  @db.Text
+  email     String?  @db.Text
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  @@map("profiles")
+}
+
+model UserRole {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  role       AppRole
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  @@unique([user_id, role])
+  @@map("user_roles")
+}
+
+model Colaborador {
+  id                 String    @id @default(uuid()) @db.Uuid
+  nome               String    @db.Text
+  empresa            String?   @db.Text
+  area               String?   @db.Text
+  setor              String?   @db.Text
+  funcao             String?   @db.Text
+  matricula_sap      String?   @db.Text
+  cpf                String?   @db.Text
+  rg                 String?   @db.Text
+  pis                String?   @db.Text
+  nascimento         DateTime? @db.Date
+  escala_turno       String?   @db.Text
+  ghe                String?   @db.Text
+  periodicidade_meses Int?     @default(12)
+  unidade            String?   @db.Text
+  ultimo_exame       DateTime? @db.Date
+  proximo_exame      DateTime? @db.Date
+  dias_para_vencer   Int?
+  status             AsoStatus @default(sem_exame)
+  observacoes        String?   @db.Text
+  ativo              Boolean   @default(true)
+  created_by         String?   @db.Uuid
+  created_at         DateTime  @default(now()) @db.Timestamptz
+  updated_at         DateTime  @default(now()) @updatedAt @db.Timestamptz
+
+  exames Exame[]
+  alertas Alerta[]
+
+  @@index([empresa])
+  @@index([unidade])
+  @@index([setor])
+  @@index([status])
+  @@index([proximo_exame])
+  @@index([cpf])
+  @@index([nome])
+  @@map("colaboradores")
+}
+
+model Exame {
+  id               String          @id @default(uuid()) @db.Uuid
+  colaborador_id   String          @db.Uuid
+  tipo             ExameTipo       @default(periodico)
+  data_agendada    DateTime?       @db.Date
+  data_realizado   DateTime?       @db.Date
+  data_vencimento  DateTime?       @db.Date
+  status           ExameStatus     @default(agendado)
+  clinica          String?         @db.Text
+  medico           String?         @db.Text
+  motivo_pendencia PendenciaMotivo? 
+  justificativa    String?         @db.Text
+  arquivo_url      String?         @db.Text
+  created_by       String?         @db.Uuid
+  created_at       DateTime        @default(now()) @db.Timestamptz
+  updated_at       DateTime        @default(now()) @updatedAt @db.Timestamptz
+
+  colaborador Colaborador @relation(fields: [colaborador_id], references: [id], onDelete: Cascade)
+
+  @@index([colaborador_id])
+  @@index([status])
+  @@index([data_agendada])
+  @@map("exames")
+}
+
+model Alerta {
+  id            String     @id @default(uuid()) @db.Uuid
+  colaborador_id String?   @db.Uuid
+  tipo          AlertaTipo
+  mensagem      String     @db.Text
+  lido          Boolean    @default(false)
+  email_enviado Boolean    @default(false)
+  created_at    DateTime   @default(now()) @db.Timestamptz
+
+  colaborador Colaborador? @relation(fields: [colaborador_id], references: [id], onDelete: Cascade)
+
+  @@index([lido])
+  @@map("alertas")
+}

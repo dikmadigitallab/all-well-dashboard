@@ -5,7 +5,6 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, Legend,
 } from "recharts";
-import { supabase } from "@/integrations/supabase/client";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import type { Colaborador } from "@/lib/colaboradores";
 import { STATUS_LABEL } from "@/lib/colaboradores";
@@ -32,12 +31,12 @@ function Dashboard() {
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["colab-dash"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("colaboradores")
-        .select("id,empresa,unidade,setor,funcao,status,proximo_exame,ativo")
-        .eq("ativo", true);
-      if (error) throw error;
-      return data as Pick<Colaborador, "id" | "empresa" | "unidade" | "setor" | "funcao" | "status" | "proximo_exame" | "ativo">[];
+      const res = await fetch("/api/colaboradores");
+      if (!res.ok) throw new Error("Erro ao buscar dados");
+      const json = await res.json();
+      return (json.data as Colaborador[]).map(({ id, empresa, unidade, setor, funcao, status, proximo_exame, ativo }) => ({
+        id, empresa, unidade, setor, funcao, status, proximo_exame, ativo,
+      })) as Pick<Colaborador, "id" | "empresa" | "unidade" | "setor" | "funcao" | "status" | "proximo_exame" | "ativo">[];
     },
   });
 
