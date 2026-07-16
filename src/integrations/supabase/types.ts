@@ -14,16 +14,282 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      alertas: {
+        Row: {
+          colaborador_id: string | null
+          created_at: string
+          email_enviado: boolean
+          id: string
+          lido: boolean
+          mensagem: string
+          tipo: Database["public"]["Enums"]["alerta_tipo"]
+        }
+        Insert: {
+          colaborador_id?: string | null
+          created_at?: string
+          email_enviado?: boolean
+          id?: string
+          lido?: boolean
+          mensagem: string
+          tipo: Database["public"]["Enums"]["alerta_tipo"]
+        }
+        Update: {
+          colaborador_id?: string | null
+          created_at?: string
+          email_enviado?: boolean
+          id?: string
+          lido?: boolean
+          mensagem?: string
+          tipo?: Database["public"]["Enums"]["alerta_tipo"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alertas_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      colaboradores: {
+        Row: {
+          area: string | null
+          ativo: boolean
+          cpf: string | null
+          created_at: string
+          created_by: string | null
+          dias_para_vencer: number | null
+          empresa: string | null
+          escala_turno: string | null
+          funcao: string | null
+          ghe: string | null
+          id: string
+          matricula_sap: string | null
+          nascimento: string | null
+          nome: string
+          observacoes: string | null
+          periodicidade_meses: number | null
+          pis: string | null
+          proximo_exame: string | null
+          rg: string | null
+          setor: string | null
+          status: Database["public"]["Enums"]["aso_status"]
+          ultimo_exame: string | null
+          unidade: string | null
+          updated_at: string
+        }
+        Insert: {
+          area?: string | null
+          ativo?: boolean
+          cpf?: string | null
+          created_at?: string
+          created_by?: string | null
+          dias_para_vencer?: number | null
+          empresa?: string | null
+          escala_turno?: string | null
+          funcao?: string | null
+          ghe?: string | null
+          id?: string
+          matricula_sap?: string | null
+          nascimento?: string | null
+          nome: string
+          observacoes?: string | null
+          periodicidade_meses?: number | null
+          pis?: string | null
+          proximo_exame?: string | null
+          rg?: string | null
+          setor?: string | null
+          status?: Database["public"]["Enums"]["aso_status"]
+          ultimo_exame?: string | null
+          unidade?: string | null
+          updated_at?: string
+        }
+        Update: {
+          area?: string | null
+          ativo?: boolean
+          cpf?: string | null
+          created_at?: string
+          created_by?: string | null
+          dias_para_vencer?: number | null
+          empresa?: string | null
+          escala_turno?: string | null
+          funcao?: string | null
+          ghe?: string | null
+          id?: string
+          matricula_sap?: string | null
+          nascimento?: string | null
+          nome?: string
+          observacoes?: string | null
+          periodicidade_meses?: number | null
+          pis?: string | null
+          proximo_exame?: string | null
+          rg?: string | null
+          setor?: string | null
+          status?: Database["public"]["Enums"]["aso_status"]
+          ultimo_exame?: string | null
+          unidade?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      exames: {
+        Row: {
+          arquivo_url: string | null
+          clinica: string | null
+          colaborador_id: string
+          created_at: string
+          created_by: string | null
+          data_agendada: string | null
+          data_realizado: string | null
+          data_vencimento: string | null
+          id: string
+          justificativa: string | null
+          medico: string | null
+          motivo_pendencia:
+            | Database["public"]["Enums"]["pendencia_motivo"]
+            | null
+          status: Database["public"]["Enums"]["exame_status"]
+          tipo: Database["public"]["Enums"]["exame_tipo"]
+          updated_at: string
+        }
+        Insert: {
+          arquivo_url?: string | null
+          clinica?: string | null
+          colaborador_id: string
+          created_at?: string
+          created_by?: string | null
+          data_agendada?: string | null
+          data_realizado?: string | null
+          data_vencimento?: string | null
+          id?: string
+          justificativa?: string | null
+          medico?: string | null
+          motivo_pendencia?:
+            | Database["public"]["Enums"]["pendencia_motivo"]
+            | null
+          status?: Database["public"]["Enums"]["exame_status"]
+          tipo?: Database["public"]["Enums"]["exame_tipo"]
+          updated_at?: string
+        }
+        Update: {
+          arquivo_url?: string | null
+          clinica?: string | null
+          colaborador_id?: string
+          created_at?: string
+          created_by?: string | null
+          data_agendada?: string | null
+          data_realizado?: string | null
+          data_vencimento?: string | null
+          id?: string
+          justificativa?: string | null
+          medico?: string | null
+          motivo_pendencia?:
+            | Database["public"]["Enums"]["pendencia_motivo"]
+            | null
+          status?: Database["public"]["Enums"]["exame_status"]
+          tipo?: Database["public"]["Enums"]["exame_tipo"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exames_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      alerta_tipo:
+        | "aso_vencendo"
+        | "aso_vencido"
+        | "exame_pendente"
+        | "falta_exame"
+        | "reagendamento"
+      app_role: "admin" | "gestor"
+      aso_status: "em_dia" | "a_vencer" | "vencido" | "sem_exame"
+      exame_status:
+        | "agendado"
+        | "compareceu"
+        | "faltou"
+        | "pendente"
+        | "cancelado"
+        | "realizado"
+      exame_tipo:
+        | "admissional"
+        | "periodico"
+        | "demissional"
+        | "retorno_ao_trabalho"
+        | "mudanca_riscos"
+        | "complementar"
+      pendencia_motivo:
+        | "agendamento"
+        | "falta_colaborador"
+        | "documentacao"
+        | "afastamento"
+        | "recusa"
+        | "outro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +416,40 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      alerta_tipo: [
+        "aso_vencendo",
+        "aso_vencido",
+        "exame_pendente",
+        "falta_exame",
+        "reagendamento",
+      ],
+      app_role: ["admin", "gestor"],
+      aso_status: ["em_dia", "a_vencer", "vencido", "sem_exame"],
+      exame_status: [
+        "agendado",
+        "compareceu",
+        "faltou",
+        "pendente",
+        "cancelado",
+        "realizado",
+      ],
+      exame_tipo: [
+        "admissional",
+        "periodico",
+        "demissional",
+        "retorno_ao_trabalho",
+        "mudanca_riscos",
+        "complementar",
+      ],
+      pendencia_motivo: [
+        "agendamento",
+        "falta_colaborador",
+        "documentacao",
+        "afastamento",
+        "recusa",
+        "outro",
+      ],
+    },
   },
 } as const
