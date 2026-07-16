@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedColaboradoresIndexRouteImport } from './routes/_authenticated/colaboradores/index'
+import { Route as AuthenticatedColaboradoresIdRouteImport } from './routes/_authenticated/colaboradores/$id'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -40,17 +41,25 @@ const AuthenticatedColaboradoresIndexRoute =
     path: '/colaboradores/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedColaboradoresIdRoute =
+  AuthenticatedColaboradoresIdRouteImport.update({
+    id: '/colaboradores/$id',
+    path: '/colaboradores/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
   '/colaboradores/': typeof AuthenticatedColaboradoresIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
   '/colaboradores': typeof AuthenticatedColaboradoresIndexRoute
 }
 export interface FileRoutesById {
@@ -59,19 +68,26 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
   '/_authenticated/colaboradores/': typeof AuthenticatedColaboradoresIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/colaboradores/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/colaboradores/$id'
+    | '/colaboradores/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/colaboradores'
+  to: '/' | '/auth' | '/dashboard' | '/colaboradores/$id' | '/colaboradores'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/dashboard'
+    | '/_authenticated/colaboradores/$id'
     | '/_authenticated/colaboradores/'
   fileRoutesById: FileRoutesById
 }
@@ -118,16 +134,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedColaboradoresIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/colaboradores/$id': {
+      id: '/_authenticated/colaboradores/$id'
+      path: '/colaboradores/$id'
+      fullPath: '/colaboradores/$id'
+      preLoaderRoute: typeof AuthenticatedColaboradoresIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedColaboradoresIdRoute: typeof AuthenticatedColaboradoresIdRoute
   AuthenticatedColaboradoresIndexRoute: typeof AuthenticatedColaboradoresIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedColaboradoresIdRoute: AuthenticatedColaboradoresIdRoute,
   AuthenticatedColaboradoresIndexRoute: AuthenticatedColaboradoresIndexRoute,
 }
 
