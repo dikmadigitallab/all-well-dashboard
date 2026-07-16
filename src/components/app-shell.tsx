@@ -12,11 +12,11 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const nav = [
+const nav: Array<{ to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean }> = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/colaboradores", label: "Colaboradores", icon: Users },
   { to: "/importar", label: "Importar planilha", icon: Upload, adminOnly: true },
-] as const;
+];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, isAdmin, signOut } = useAuth();
