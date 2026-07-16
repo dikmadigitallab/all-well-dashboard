@@ -7,6 +7,7 @@ import {
   LogOut,
   ShieldCheck,
   Eye,
+  FileText,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ const nav: Array<{ to: string; label: string; icon: typeof LayoutDashboard; admi
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/colaboradores", label: "Colaboradores", icon: Users },
   { to: "/importar", label: "Importar planilha", icon: Upload, adminOnly: true },
+  { to: "/gerar-formularios", label: "Gerar formulários", icon: FileText, adminOnly: true },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
