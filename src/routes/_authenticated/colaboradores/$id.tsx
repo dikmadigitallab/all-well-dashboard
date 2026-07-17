@@ -175,7 +175,70 @@ function EditColab() {
           </div>
         )}
       </form>
+
+      {!isNew && <HistoricoExames colaboradorId={id} />}
     </PageContainer>
+  );
+}
+
+function HistoricoExames({ colaboradorId }: { colaboradorId: string }) {
+  const { data: rows = [], isLoading } = useQuery({
+    queryKey: ["exames-colab", colaboradorId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("exames")
+        .select("*")
+        .eq("colaborador_id", colaboradorId)
+        .order("data_agendada", { ascending: false, nullsFirst: false })
+        .limit(200);
+      if (error) throw error;
+      return (data ?? []) as Exame[];
+    },
+  });
+
+  return (
+    <div className="mt-6 rounded-lg border border-border bg-card p-6 shadow-panel">
+      <h2 className="text-base font-semibold mb-3">Histórico de exames</h2>
+      {isLoading ? (
+        <div className="text-sm text-muted-foreground">Carregando...</div>
+      ) : rows.length === 0 ? (
+        <div className="text-sm text-muted-foreground">Nenhum exame registrado.</div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-xs text-muted-foreground border-b border-border">
+              <tr>
+                <th className="text-left p-2">Tipo</th>
+                <th className="text-left p-2">Agendado</th>
+                <th className="text-left p-2">Realizado</th>
+                <th className="text-left p-2">Vencimento</th>
+                <th className="text-left p-2">Status</th>
+                <th className="text-left p-2">Motivo/Just.</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} className="border-b border-border/60">
+                  <td className="p-2">{TIPO_LABEL[r.tipo]}</td>
+                  <td className="p-2">{formatDate(r.data_agendada)}</td>
+                  <td className="p-2">{formatDate(r.data_realizado)}</td>
+                  <td className="p-2">{formatDate(r.data_vencimento)}</td>
+                  <td className="p-2">
+                    <span className={cn("inline-flex items-center rounded-md border px-2 py-0.5 text-xs", STATUS_EXAME_CLASSES[r.status])}>
+                      {STATUS_EXAME_LABEL[r.status]}
+                    </span>
+                  </td>
+                  <td className="p-2 text-muted-foreground text-xs">
+                    {r.motivo_pendencia ? MOTIVO_LABEL[r.motivo_pendencia] : ""}
+                    {r.justificativa ? ` — ${r.justificativa}` : ""}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }
 
