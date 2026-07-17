@@ -15,6 +15,10 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { Colaborador, ColaboradorInsert } from "@/lib/colaboradores";
+import { formatDate } from "@/lib/colaboradores";
+import type { Exame } from "@/lib/exames";
+import { TIPO_LABEL, STATUS_EXAME_LABEL, STATUS_EXAME_CLASSES, MOTIVO_LABEL } from "@/lib/exames";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/colaboradores/$id")({
   component: EditColab,
