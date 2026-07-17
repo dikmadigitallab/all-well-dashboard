@@ -7,6 +7,8 @@ import {
   LogOut,
   ShieldCheck,
   Eye,
+  CalendarCheck,
+  AlertTriangle,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -15,6 +17,8 @@ import { cn } from "@/lib/utils";
 const nav: Array<{ to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean }> = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/colaboradores", label: "Colaboradores", icon: Users },
+  { to: "/exames", label: "Agenda de exames", icon: CalendarCheck },
+  { to: "/pendencias", label: "Pendências", icon: AlertTriangle },
   { to: "/importar", label: "Importar planilha", icon: Upload, adminOnly: true },
 ];
 
