@@ -1,0 +1,21 @@
+#!/bin/sh
+# Pre-commit hook: bloqueia commit de arquivos .env (com ou sem sufixo)
+# Impede que chaves e segredos sejam commitados acidentalmente.
+
+BLOCKED_PATTERNS="\.env$|\.env\.dev$|\.env\.prod$|\.env\.staging$|\.env\.local$|\.env\.backup$"
+
+FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E "$BLOCKED_PATTERNS")
+
+if [ -n "$FILES" ]; then
+  echo "============================================"
+  echo "  🔴 BLOQUEADO: Arquivos .env não podem"
+  echo "     ser commitados!"
+  echo "============================================"
+  echo "$FILES" | while read -r f; do echo "  - $f"; done
+  echo ""
+  echo "  Remova do staging: git rm --cached <arquivo>"
+  echo "  E adicione ao .gitignore se necessário."
+  exit 1
+fi
+
+exit 0

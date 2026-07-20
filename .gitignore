@@ -35,3 +35,8 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+.env.dev
+.env.prod
+.env.staging
+.env.backup
+.env.*.backup
