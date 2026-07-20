@@ -4,10 +4,6 @@ import { useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { Plus, Download, Search } from "lucide-react";
-<<<<<<< HEAD
-=======
-import { supabase } from "@/integrations/supabase/client";
->>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
 import { useAuth } from "@/hooks/use-auth";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -30,20 +26,10 @@ function ColabList() {
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["colaboradores-list"],
     queryFn: async () => {
-<<<<<<< HEAD
       const res = await fetch("/api/colaboradores");
       if (!res.ok) throw new Error("Erro ao buscar colaboradores");
       const json = await res.json();
       return json.data as Colaborador[];
-=======
-      const { data, error } = await supabase
-        .from("colaboradores")
-        .select("*")
-        .order("nome", { ascending: true })
-        .limit(5000);
-      if (error) throw error;
-      return data as Colaborador[];
->>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
     },
   });
 

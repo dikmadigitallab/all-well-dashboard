@@ -3,10 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Save, Trash2 } from "lucide-react";
-<<<<<<< HEAD
-=======
-import { supabase } from "@/integrations/supabase/client";
->>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
 import { useAuth } from "@/hooks/use-auth";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -17,21 +13,13 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-<<<<<<< HEAD
 import type { Colaborador } from "@/lib/colaboradores";
-=======
-import type { Colaborador, ColaboradorInsert } from "@/lib/colaboradores";
->>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
 
 export const Route = createFileRoute("/_authenticated/colaboradores/$id")({
   component: EditColab,
 });
 
-<<<<<<< HEAD
 const EMPTY = {
-=======
-const EMPTY: ColaboradorInsert = {
->>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
   nome: "",
   empresa: null, area: null, setor: null, funcao: null,
   matricula_sap: null, cpf: null, rg: null, pis: null,
@@ -46,27 +34,17 @@ function EditColab() {
   const { isAdmin } = useAuth();
   const isNew = id === "novo";
 
-<<<<<<< HEAD
   const [form, setForm] = useState<typeof EMPTY>(EMPTY);
-=======
-  const [form, setForm] = useState<ColaboradorInsert>(EMPTY);
->>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
   const [busy, setBusy] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["colab", id],
     queryFn: async () => {
       if (isNew) return null;
-<<<<<<< HEAD
       const res = await fetch(`/api/colaboradores/${id}`);
       if (!res.ok) throw new Error("Erro ao buscar colaborador");
       const json = await res.json();
       return json.data as Colaborador | null;
-=======
-      const { data, error } = await supabase.from("colaboradores").select("*").eq("id", id).maybeSingle();
-      if (error) throw error;
-      return data as Colaborador | null;
->>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
     },
     enabled: !isNew,
   });
@@ -75,18 +53,13 @@ function EditColab() {
     if (data) setForm(data);
   }, [data]);
 
-<<<<<<< HEAD
   const set = <K extends keyof typeof EMPTY>(k: K, v: (typeof EMPTY)[K]) =>
-=======
-  const set = <K extends keyof ColaboradorInsert>(k: K, v: ColaboradorInsert[K]) =>
->>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
     setForm((f) => ({ ...f, [k]: v }));
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.nome?.trim()) return toast.error("Nome é obrigatório");
     setBusy(true);
-<<<<<<< HEAD
     try {
       if (isNew) {
         const res = await fetch("/api/colaboradores", {
@@ -112,25 +85,10 @@ function EditColab() {
       toast.error("Erro ao salvar", { description: err instanceof Error ? err.message : "Erro desconhecido" });
     } finally {
       setBusy(false);
-=======
-    if (isNew) {
-      const { data: ins, error } = await supabase.from("colaboradores").insert(form).select("id").single();
-      setBusy(false);
-      if (error) return toast.error("Erro ao salvar", { description: error.message });
-      toast.success("Colaborador criado");
-      navigate({ to: "/colaboradores/$id", params: { id: ins.id } });
-    } else {
-      const { id: _drop, created_at: _c, updated_at: _u, created_by: _cb, dias_para_vencer: _d, status: _s, ...upd } = form as Colaborador;
-      const { error } = await supabase.from("colaboradores").update(upd).eq("id", id);
-      setBusy(false);
-      if (error) return toast.error("Erro ao salvar", { description: error.message });
-      toast.success("Alterações salvas");
->>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
     }
   };
 
   const remove = async () => {
-<<<<<<< HEAD
     try {
       const res = await fetch(`/api/colaboradores/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error((await res.json()).error);
@@ -139,12 +97,6 @@ function EditColab() {
     } catch (err) {
       toast.error("Erro ao remover", { description: err instanceof Error ? err.message : "Erro desconhecido" });
     }
-=======
-    const { error } = await supabase.from("colaboradores").delete().eq("id", id);
-    if (error) return toast.error("Erro ao remover", { description: error.message });
-    toast.success("Colaborador removido");
-    navigate({ to: "/colaboradores" });
->>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
   };
 
   if (!isNew && isLoading) {

@@ -32,11 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (username: string, password: string) => {
-<<<<<<< HEAD
     const result = await loginFn(username, password);
-=======
-    const result = await loginFn({ username, password });
->>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
     if (!result.ok) {
       return { error: result.error };
     }
