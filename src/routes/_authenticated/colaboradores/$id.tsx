@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-r
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Trash2, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PageContainer, PageHeader } from "@/components/page-header";
@@ -19,6 +19,7 @@ import { formatDate } from "@/lib/colaboradores";
 import type { Exame } from "@/lib/exames";
 import { TIPO_LABEL, STATUS_EXAME_LABEL, STATUS_EXAME_CLASSES, MOTIVO_LABEL } from "@/lib/exames";
 import { cn } from "@/lib/utils";
+import { gerarASO } from "@/lib/reports";
 
 export const Route = createFileRoute("/_authenticated/colaboradores/$id")({
   component: EditColab,
@@ -102,6 +103,11 @@ function EditColab() {
             <Button asChild variant="outline" size="sm">
               <Link to="/colaboradores"><ArrowLeft className="h-4 w-4 mr-2" />Voltar</Link>
             </Button>
+            {!isNew && (
+              <Button variant="outline" size="sm" onClick={() => gerarASO(form as Colaborador)}>
+                <FileText className="h-4 w-4 mr-2" />Gerar ASO (PDF)
+              </Button>
+            )}
             {!isNew && isAdmin && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
