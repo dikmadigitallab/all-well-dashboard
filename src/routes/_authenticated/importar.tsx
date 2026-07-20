@@ -3,16 +3,28 @@ import { useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { Upload, FileSpreadsheet, CheckCircle2 } from "lucide-react";
+<<<<<<< HEAD
 import { useAuth } from "@/hooks/use-auth";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
+=======
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { PageContainer, PageHeader } from "@/components/page-header";
+import { Button } from "@/components/ui/button";
+import type { ColaboradorInsert } from "@/lib/colaboradores";
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
 
 export const Route = createFileRoute("/_authenticated/importar")({
   component: ImportarPage,
 });
 
 // Map planilha column headers -> database fields (case/space insensitive)
+<<<<<<< HEAD
 const HEADER_MAP: Record<string, string> = {
+=======
+const HEADER_MAP: Record<string, keyof ColaboradorInsert> = {
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
   nome: "nome",
   empresa: "empresa",
   area: "area",
@@ -68,20 +80,38 @@ function excelDateToISO(v: unknown): string | null {
   return null;
 }
 
+<<<<<<< HEAD
 function parseSheet(rows: Record<string, unknown>[]): Record<string, unknown>[] {
   return rows
     .map((raw) => {
       const rec: Record<string, unknown> = { nome: "" };
+=======
+function parseSheet(rows: Record<string, unknown>[]): ColaboradorInsert[] {
+  return rows
+    .map((raw) => {
+      const rec: ColaboradorInsert = { nome: "" };
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
       for (const [k, v] of Object.entries(raw)) {
         const key = HEADER_MAP[norm(k)];
         if (!key || v == null || v === "") continue;
         if (key === "nascimento" || key === "ultimo_exame" || key === "proximo_exame") {
+<<<<<<< HEAD
           rec[key] = excelDateToISO(v);
         } else if (key === "periodicidade_meses") {
           const n = parseInt(String(v).replace(/\D/g, ""));
           if (!Number.isNaN(n)) rec[key] = n;
         } else {
           rec[key] = String(v).trim();
+=======
+          (rec as Record<string, unknown>)[key] = excelDateToISO(v);
+        } else if (key === "periodicidade_meses") {
+          const n = parseInt(String(v).replace(/\D/g, ""));
+          if (!Number.isNaN(n)) rec.periodicidade_meses = n;
+        } else if (key === "cpf" || key === "rg" || key === "pis" || key === "matricula_sap") {
+          (rec as Record<string, unknown>)[key] = String(v).trim();
+        } else {
+          (rec as Record<string, unknown>)[key] = String(v).trim();
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
         }
       }
       return rec;
@@ -93,7 +123,11 @@ function ImportarPage() {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
+<<<<<<< HEAD
   const [preview, setPreview] = useState<Record<string, unknown>[]>([]);
+=======
+  const [preview, setPreview] = useState<ColaboradorInsert[]>([]);
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState<{ inserted: number; skipped: number } | null>(null);
@@ -120,6 +154,7 @@ function ImportarPage() {
     let skipped = 0;
     for (let i = 0; i < preview.length; i += BATCH) {
       const chunk = preview.slice(i, i + BATCH);
+<<<<<<< HEAD
       try {
         const res = await fetch("/api/colaboradores", {
           method: "POST",
@@ -143,6 +178,14 @@ function ImportarPage() {
             skipped++;
           }
         }
+=======
+      const { data, error } = await supabase.from("colaboradores").insert(chunk).select("id");
+      if (error) {
+        toast.error("Erro no lote", { description: error.message });
+        skipped += chunk.length;
+      } else {
+        inserted += data?.length ?? 0;
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
       }
       setProgress(Math.round(((i + chunk.length) / preview.length) * 100));
     }

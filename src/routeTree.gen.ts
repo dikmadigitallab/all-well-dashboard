@@ -12,14 +12,20 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+<<<<<<< HEAD
 import { Route as ApiLoginRouteImport } from './routes/api/login'
 import { Route as ApiColaboradoresRouteImport } from './routes/api/colaboradores'
 import { Route as ApiApplyMigrationsRouteImport } from './routes/api/apply-migrations'
+=======
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
 import { Route as AuthenticatedImportarRouteImport } from './routes/_authenticated/importar'
 import { Route as AuthenticatedGerarFormulariosRouteImport } from './routes/_authenticated/gerar-formularios'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedColaboradoresIndexRouteImport } from './routes/_authenticated/colaboradores/index'
+<<<<<<< HEAD
 import { Route as ApiColaboradoresIdRouteImport } from './routes/api/colaboradores.$id'
+=======
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
 import { Route as AuthenticatedColaboradoresIdRouteImport } from './routes/_authenticated/colaboradores/$id'
 
 const AuthRoute = AuthRouteImport.update({
@@ -36,6 +42,7 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+<<<<<<< HEAD
 const ApiLoginRoute = ApiLoginRouteImport.update({
   id: '/api/login',
   path: '/api/login',
@@ -51,6 +58,8 @@ const ApiApplyMigrationsRoute = ApiApplyMigrationsRouteImport.update({
   path: '/api/apply-migrations',
   getParentRoute: () => rootRouteImport,
 } as any)
+=======
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
 const AuthenticatedImportarRoute = AuthenticatedImportarRouteImport.update({
   id: '/importar',
   path: '/importar',
@@ -73,11 +82,14 @@ const AuthenticatedColaboradoresIndexRoute =
     path: '/colaboradores/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+<<<<<<< HEAD
 const ApiColaboradoresIdRoute = ApiColaboradoresIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => ApiColaboradoresRoute,
 } as any)
+=======
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
 const AuthenticatedColaboradoresIdRoute =
   AuthenticatedColaboradoresIdRouteImport.update({
     id: '/colaboradores/$id',
@@ -91,11 +103,15 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/gerar-formularios': typeof AuthenticatedGerarFormulariosRoute
   '/importar': typeof AuthenticatedImportarRoute
+<<<<<<< HEAD
   '/api/apply-migrations': typeof ApiApplyMigrationsRoute
   '/api/colaboradores': typeof ApiColaboradoresRouteWithChildren
   '/api/login': typeof ApiLoginRoute
   '/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
   '/api/colaboradores/$id': typeof ApiColaboradoresIdRoute
+=======
+  '/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
   '/colaboradores/': typeof AuthenticatedColaboradoresIndexRoute
 }
 export interface FileRoutesByTo {
@@ -104,11 +120,15 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/gerar-formularios': typeof AuthenticatedGerarFormulariosRoute
   '/importar': typeof AuthenticatedImportarRoute
+<<<<<<< HEAD
   '/api/apply-migrations': typeof ApiApplyMigrationsRoute
   '/api/colaboradores': typeof ApiColaboradoresRouteWithChildren
   '/api/login': typeof ApiLoginRoute
   '/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
   '/api/colaboradores/$id': typeof ApiColaboradoresIdRoute
+=======
+  '/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
   '/colaboradores': typeof AuthenticatedColaboradoresIndexRoute
 }
 export interface FileRoutesById {
@@ -119,11 +139,15 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/gerar-formularios': typeof AuthenticatedGerarFormulariosRoute
   '/_authenticated/importar': typeof AuthenticatedImportarRoute
+<<<<<<< HEAD
   '/api/apply-migrations': typeof ApiApplyMigrationsRoute
   '/api/colaboradores': typeof ApiColaboradoresRouteWithChildren
   '/api/login': typeof ApiLoginRoute
   '/_authenticated/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
   '/api/colaboradores/$id': typeof ApiColaboradoresIdRoute
+=======
+  '/_authenticated/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
   '/_authenticated/colaboradores/': typeof AuthenticatedColaboradoresIndexRoute
 }
 export interface FileRouteTypes {
@@ -134,11 +158,15 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/gerar-formularios'
     | '/importar'
+<<<<<<< HEAD
     | '/api/apply-migrations'
     | '/api/colaboradores'
     | '/api/login'
     | '/colaboradores/$id'
     | '/api/colaboradores/$id'
+=======
+    | '/colaboradores/$id'
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
     | '/colaboradores/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -147,11 +175,15 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/gerar-formularios'
     | '/importar'
+<<<<<<< HEAD
     | '/api/apply-migrations'
     | '/api/colaboradores'
     | '/api/login'
     | '/colaboradores/$id'
     | '/api/colaboradores/$id'
+=======
+    | '/colaboradores/$id'
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
     | '/colaboradores'
   id:
     | '__root__'
@@ -161,11 +193,15 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/gerar-formularios'
     | '/_authenticated/importar'
+<<<<<<< HEAD
     | '/api/apply-migrations'
     | '/api/colaboradores'
     | '/api/login'
     | '/_authenticated/colaboradores/$id'
     | '/api/colaboradores/$id'
+=======
+    | '/_authenticated/colaboradores/$id'
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
     | '/_authenticated/colaboradores/'
   fileRoutesById: FileRoutesById
 }
@@ -173,9 +209,12 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+<<<<<<< HEAD
   ApiApplyMigrationsRoute: typeof ApiApplyMigrationsRoute
   ApiColaboradoresRoute: typeof ApiColaboradoresRouteWithChildren
   ApiLoginRoute: typeof ApiLoginRoute
+=======
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
 }
 
 declare module '@tanstack/react-router' {
@@ -201,6 +240,7 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+<<<<<<< HEAD
     '/api/login': {
       id: '/api/login'
       path: '/api/login'
@@ -222,6 +262,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiApplyMigrationsRouteImport
       parentRoute: typeof rootRouteImport
     }
+=======
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
     '/_authenticated/importar': {
       id: '/_authenticated/importar'
       path: '/importar'
@@ -250,6 +292,7 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedColaboradoresIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+<<<<<<< HEAD
     '/api/colaboradores/$id': {
       id: '/api/colaboradores/$id'
       path: '/$id'
@@ -257,6 +300,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiColaboradoresIdRouteImport
       parentRoute: typeof ApiColaboradoresRoute
     }
+=======
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
     '/_authenticated/colaboradores/$id': {
       id: '/_authenticated/colaboradores/$id'
       path: '/colaboradores/$id'
@@ -286,6 +331,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+<<<<<<< HEAD
 interface ApiColaboradoresRouteChildren {
   ApiColaboradoresIdRoute: typeof ApiColaboradoresIdRoute
 }
@@ -297,13 +343,18 @@ const ApiColaboradoresRouteChildren: ApiColaboradoresRouteChildren = {
 const ApiColaboradoresRouteWithChildren =
   ApiColaboradoresRoute._addFileChildren(ApiColaboradoresRouteChildren)
 
+=======
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+<<<<<<< HEAD
   ApiApplyMigrationsRoute: ApiApplyMigrationsRoute,
   ApiColaboradoresRoute: ApiColaboradoresRouteWithChildren,
   ApiLoginRoute: ApiLoginRoute,
+=======
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

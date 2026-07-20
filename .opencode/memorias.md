@@ -1,28 +1,49 @@
-# Memorias
+# Memórias
 
-Registro de decisões e alterações do projeto.
+## Autenticação Custom (17/07/2026)
+- Substituído Supabase Auth por sistema de autenticação 100% custom
+- Credenciais armazenadas em `.env` (AUTH_USERNAME, AUTH_PASSWORD)
+- JWT gerado com `jose` (HS256, expiração 24h)
+- Servidor valida usuário/senha via server function `login()`
+- Token armazenado no localStorage do cliente
+- Login page modificada: campo "Usuário" (não email), sem aba de cadastro
+- Role admin definida via AUTH_USER_ROLE no .env
+- `AppShell` exibe `fullName` do usuário
+- Supabase Auth files (`auth-attacher.ts`, `auth-middleware.ts`) mantidos como dead code
 
-## Sessão
+<<<<<<< HEAD
+## Migrations Aplicadas (17/07/2026)
+- Pooler Supabase (`aws-1-sa-east-1.pooler.supabase.com:5432`) está FUNCIONANDO
+- Todas as 4 migrations SQL aplicadas com sucesso via `prisma db push`
+- FK constraints de `auth.users` removidas (não usamos mais Supabase Auth)
+- RLS policies e funções (has_role, is_admin) removidas (auth custom)
 
-| Data | Decisão | Autor |
-|------|---------|-------|
-| 2026-07-07 | `hiskra-code` sem argumentos agora auto-inicia `.opencode/` e lança o opencode | VIBECODE |
-| 2026-07-07 | Adicionado `--help` / `-h` / `help` para exibir ajuda | VIBECODE |
-| 2026-07-07 | `hiskra-code` sem args verifica versão e avisa se precisar de update antes de abrir opencode | VIBECODE |
-| 2026-07-09 | v4.0.0 — Modo Legado: comando `conect`, motor NVIDIA com tool calling, streaming, histórico | VIBECODE |
-| 2026-07-09 | `conect-config.js`: gerencia `.opencode/conect.json` com provider, modelo, baseUrl | VIBECODE |
-| 2026-07-09 | `nvidia-api.js`: cliente NVIDIA NIM com listagem de modelos, chat streaming, tool calling | VIBECODE |
-| 2026-07-09 | `engine-tools.js`: 10 ferramentas (bash, read, edit, write, glob, grep, todowrite, websearch, webfetch, task) | VIBECODE |
-| 2026-07-09 | `engine-context.js`: histórico com truncagem automática por limite de tokens | VIBECODE |
-| 2026-07-09 | `engine-prompt.js`: system prompt dinâmico combinando config.md + orquestrador + skills | VIBECODE |
-| 2026-07-09 | `engine-nvidia.js`: motor principal com loop de conversa interativo e tool calling multi-turn | VIBECODE |
-| 2026-07-09 | `index.cjs` (initProject): cria `.env` com KEY_NVIDIA padrão + `.gitignore` com `.env` | VIBECODE |
-| 2026-07-09 | `nvidia-api.js`: `DEFAULT_NVIDIA_KEY` embutida como chave padrão do pacote | VIBECODE |
-| 2026-07-16 | Script `fill-forms.mjs`: lê base.xlsx e gera PDFs A4 replicando o form (pdfkit) | VIBECODE |
-| 2026-07-16 | Migrado para .docx + JSZip: manipula XML do Word sem corromper | VIBECODE |
-| 2026-07-16 | Interface gráfica: rota `/gerar-formularios` com upload, detecção automática e download ZIP | VIBECODE |
-| 2026-07-16 | `src/lib/fill-forms-client.ts`: lógica de preenchimento client-side com JSZip + xlsx | VIBECODE |
-| 2026-07-16 | `public/formulario 1.docx` e `public/formulario 2.docx`: templates acessíveis ao navegador | VIBECODE |
-| 2026-07-16 | Sidebar: novo item "Gerar formulários" na navegação (admin) | VIBECODE |
-| 2026-07-16 | Mapeamento: colunas Excel → campos formulário (NOME, CPF, RG, PIS, GHE, FUNÇÃO, Nascimento) | VIBECODE |
-| 2026-07-16 | Manipulação binária .doc (cfb) corrompe arquivos — abandonada, .docx + JSZip é a saída | VIBECODE |
+## Prisma ORM (17/07/2026)
+- Prisma 7.8.0 instalado e configurado
+- `@prisma/adapter-pg` para conexão direta ao PostgreSQL
+- Schema em `prisma/schema.prisma` com 5 models + 6 enums
+- `DATABASE_URL` configurada no `.env`
+- Prisma client gerado e funcional
+- `src/lib/prisma.server.ts` — singleton do PrismaClient (server-side)
+- API endpoints criados:
+  - `GET/POST /api/colaboradores` — listar/criar (suporta batch)
+  - `GET/PUT/DELETE /api/colaboradores/$id` — buscar/atualizar/deletar
+- Frontend atualizado para usar `fetch()` para as APIs ao invés de Supabase JS client
+- Supabase client (`@/integrations/supabase/client`) ainda existe como dead code
+
+## Próximos Passos
+- Migrar auth custom para tabela `users` própria (remover dependência de .env)
+- Criar tabela `users` (ou usar `user_roles` já existente com uma `users` table)
+- Limpar arquivos legados do Supabase (`integrations/supabase/`)
+- Remover imports de `@/integrations/supabase/types` e usar tipos do Prisma
+=======
+## Pendente
+- Conexão direta ao banco PostgreSQL não funciona (pooler rejeita senha)
+- 4 migrations SQL não aplicadas (schema de colaboradores, exames, alertas, etc.)
+- Usuário `maria_eduarda` criado via Supabase Auth admin API (pode ser removido depois)
+- Quando banco estiver acessível: migrar auth para tabela própria e aplicar migrations
+>>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
+
+## Credenciais de acesso
+- Usuário: maria_eduarda
+- Senha: 123456
