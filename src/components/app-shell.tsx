@@ -9,9 +9,11 @@ import {
   Eye,
   CalendarCheck,
   AlertTriangle,
+  FileBarChart2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { NotificationBell } from "@/components/notification-bell";
 import { cn } from "@/lib/utils";
 
 const nav: Array<{ to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean }> = [
@@ -19,6 +21,7 @@ const nav: Array<{ to: string; label: string; icon: typeof LayoutDashboard; admi
   { to: "/colaboradores", label: "Colaboradores", icon: Users },
   { to: "/exames", label: "Agenda de exames", icon: CalendarCheck },
   { to: "/pendencias", label: "Pendências", icon: AlertTriangle },
+  { to: "/relatorios", label: "Relatórios", icon: FileBarChart2 },
   { to: "/importar", label: "Importar planilha", icon: Upload, adminOnly: true },
 ];
 
@@ -96,7 +99,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <main className="flex-1 min-w-0">{children}</main>
+      <main className="flex-1 min-w-0">
+        <div className="flex items-center justify-end gap-2 px-8 pt-4">
+          <NotificationBell />
+        </div>
+        {children}
+      </main>
     </div>
   );
 }

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 import { Route as AuthenticatedPendenciasRouteImport } from './routes/_authenticated/pendencias'
 import { Route as AuthenticatedImportarRouteImport } from './routes/_authenticated/importar'
 import { Route as AuthenticatedExamesRouteImport } from './routes/_authenticated/exames'
@@ -32,6 +33,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPendenciasRoute = AuthenticatedPendenciasRouteImport.update({
   id: '/pendencias',
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/exames': typeof AuthenticatedExamesRoute
   '/importar': typeof AuthenticatedImportarRoute
   '/pendencias': typeof AuthenticatedPendenciasRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
   '/colaboradores/': typeof AuthenticatedColaboradoresIndexRoute
 }
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/exames': typeof AuthenticatedExamesRoute
   '/importar': typeof AuthenticatedImportarRoute
   '/pendencias': typeof AuthenticatedPendenciasRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
   '/colaboradores': typeof AuthenticatedColaboradoresIndexRoute
 }
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/_authenticated/exames': typeof AuthenticatedExamesRoute
   '/_authenticated/importar': typeof AuthenticatedImportarRoute
   '/_authenticated/pendencias': typeof AuthenticatedPendenciasRoute
+  '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/_authenticated/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
   '/_authenticated/colaboradores/': typeof AuthenticatedColaboradoresIndexRoute
 }
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/exames'
     | '/importar'
     | '/pendencias'
+    | '/relatorios'
     | '/colaboradores/$id'
     | '/colaboradores/'
   fileRoutesByTo: FileRoutesByTo
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/exames'
     | '/importar'
     | '/pendencias'
+    | '/relatorios'
     | '/colaboradores/$id'
     | '/colaboradores'
   id:
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/_authenticated/exames'
     | '/_authenticated/importar'
     | '/_authenticated/pendencias'
+    | '/_authenticated/relatorios'
     | '/_authenticated/colaboradores/$id'
     | '/_authenticated/colaboradores/'
   fileRoutesById: FileRoutesById
@@ -160,6 +172,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/relatorios': {
+      id: '/_authenticated/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/pendencias': {
       id: '/_authenticated/pendencias'
@@ -211,6 +230,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedExamesRoute: typeof AuthenticatedExamesRoute
   AuthenticatedImportarRoute: typeof AuthenticatedImportarRoute
   AuthenticatedPendenciasRoute: typeof AuthenticatedPendenciasRoute
+  AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedColaboradoresIdRoute: typeof AuthenticatedColaboradoresIdRoute
   AuthenticatedColaboradoresIndexRoute: typeof AuthenticatedColaboradoresIndexRoute
 }
@@ -220,6 +240,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedExamesRoute: AuthenticatedExamesRoute,
   AuthenticatedImportarRoute: AuthenticatedImportarRoute,
   AuthenticatedPendenciasRoute: AuthenticatedPendenciasRoute,
+  AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedColaboradoresIdRoute: AuthenticatedColaboradoresIdRoute,
   AuthenticatedColaboradoresIndexRoute: AuthenticatedColaboradoresIndexRoute,
 }
