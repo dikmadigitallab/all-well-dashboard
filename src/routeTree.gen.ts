@@ -12,13 +12,17 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiSetupRouteImport } from './routes/api/setup'
 import { Route as ApiLoginRouteImport } from './routes/api/login'
+import { Route as ApiEmailConfigRouteImport } from './routes/api/email-config'
 import { Route as ApiColaboradoresRouteImport } from './routes/api/colaboradores'
 import { Route as ApiApplyMigrationsRouteImport } from './routes/api/apply-migrations'
 import { Route as AuthenticatedImportarRouteImport } from './routes/_authenticated/importar'
 import { Route as AuthenticatedGerarFormulariosRouteImport } from './routes/_authenticated/gerar-formularios'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedConfigEmailRouteImport } from './routes/_authenticated/config-email'
 import { Route as AuthenticatedColaboradoresIndexRouteImport } from './routes/_authenticated/colaboradores/index'
+import { Route as ApiEmailConfigTestRouteImport } from './routes/api/email-config.test'
 import { Route as ApiColaboradoresIdRouteImport } from './routes/api/colaboradores.$id'
 import { Route as AuthenticatedColaboradoresIdRouteImport } from './routes/_authenticated/colaboradores/$id'
 
@@ -36,9 +40,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSetupRoute = ApiSetupRouteImport.update({
+  id: '/api/setup',
+  path: '/api/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiLoginRoute = ApiLoginRouteImport.update({
   id: '/api/login',
   path: '/api/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEmailConfigRoute = ApiEmailConfigRouteImport.update({
+  id: '/api/email-config',
+  path: '/api/email-config',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiColaboradoresRoute = ApiColaboradoresRouteImport.update({
@@ -67,12 +81,23 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedConfigEmailRoute =
+  AuthenticatedConfigEmailRouteImport.update({
+    id: '/config-email',
+    path: '/config-email',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedColaboradoresIndexRoute =
   AuthenticatedColaboradoresIndexRouteImport.update({
     id: '/colaboradores/',
     path: '/colaboradores/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiEmailConfigTestRoute = ApiEmailConfigTestRouteImport.update({
+  id: '/test',
+  path: '/test',
+  getParentRoute: () => ApiEmailConfigRoute,
+} as any)
 const ApiColaboradoresIdRoute = ApiColaboradoresIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -88,27 +113,35 @@ const AuthenticatedColaboradoresIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/config-email': typeof AuthenticatedConfigEmailRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/gerar-formularios': typeof AuthenticatedGerarFormulariosRoute
   '/importar': typeof AuthenticatedImportarRoute
   '/api/apply-migrations': typeof ApiApplyMigrationsRoute
   '/api/colaboradores': typeof ApiColaboradoresRouteWithChildren
+  '/api/email-config': typeof ApiEmailConfigRouteWithChildren
   '/api/login': typeof ApiLoginRoute
+  '/api/setup': typeof ApiSetupRoute
   '/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
   '/api/colaboradores/$id': typeof ApiColaboradoresIdRoute
+  '/api/email-config/test': typeof ApiEmailConfigTestRoute
   '/colaboradores/': typeof AuthenticatedColaboradoresIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/config-email': typeof AuthenticatedConfigEmailRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/gerar-formularios': typeof AuthenticatedGerarFormulariosRoute
   '/importar': typeof AuthenticatedImportarRoute
   '/api/apply-migrations': typeof ApiApplyMigrationsRoute
   '/api/colaboradores': typeof ApiColaboradoresRouteWithChildren
+  '/api/email-config': typeof ApiEmailConfigRouteWithChildren
   '/api/login': typeof ApiLoginRoute
+  '/api/setup': typeof ApiSetupRoute
   '/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
   '/api/colaboradores/$id': typeof ApiColaboradoresIdRoute
+  '/api/email-config/test': typeof ApiEmailConfigTestRoute
   '/colaboradores': typeof AuthenticatedColaboradoresIndexRoute
 }
 export interface FileRoutesById {
@@ -116,14 +149,18 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/config-email': typeof AuthenticatedConfigEmailRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/gerar-formularios': typeof AuthenticatedGerarFormulariosRoute
   '/_authenticated/importar': typeof AuthenticatedImportarRoute
   '/api/apply-migrations': typeof ApiApplyMigrationsRoute
   '/api/colaboradores': typeof ApiColaboradoresRouteWithChildren
+  '/api/email-config': typeof ApiEmailConfigRouteWithChildren
   '/api/login': typeof ApiLoginRoute
+  '/api/setup': typeof ApiSetupRoute
   '/_authenticated/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
   '/api/colaboradores/$id': typeof ApiColaboradoresIdRoute
+  '/api/email-config/test': typeof ApiEmailConfigTestRoute
   '/_authenticated/colaboradores/': typeof AuthenticatedColaboradoresIndexRoute
 }
 export interface FileRouteTypes {
@@ -131,41 +168,53 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/config-email'
     | '/dashboard'
     | '/gerar-formularios'
     | '/importar'
     | '/api/apply-migrations'
     | '/api/colaboradores'
+    | '/api/email-config'
     | '/api/login'
+    | '/api/setup'
     | '/colaboradores/$id'
     | '/api/colaboradores/$id'
+    | '/api/email-config/test'
     | '/colaboradores/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/config-email'
     | '/dashboard'
     | '/gerar-formularios'
     | '/importar'
     | '/api/apply-migrations'
     | '/api/colaboradores'
+    | '/api/email-config'
     | '/api/login'
+    | '/api/setup'
     | '/colaboradores/$id'
     | '/api/colaboradores/$id'
+    | '/api/email-config/test'
     | '/colaboradores'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/config-email'
     | '/_authenticated/dashboard'
     | '/_authenticated/gerar-formularios'
     | '/_authenticated/importar'
     | '/api/apply-migrations'
     | '/api/colaboradores'
+    | '/api/email-config'
     | '/api/login'
+    | '/api/setup'
     | '/_authenticated/colaboradores/$id'
     | '/api/colaboradores/$id'
+    | '/api/email-config/test'
     | '/_authenticated/colaboradores/'
   fileRoutesById: FileRoutesById
 }
@@ -175,7 +224,9 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ApiApplyMigrationsRoute: typeof ApiApplyMigrationsRoute
   ApiColaboradoresRoute: typeof ApiColaboradoresRouteWithChildren
+  ApiEmailConfigRoute: typeof ApiEmailConfigRouteWithChildren
   ApiLoginRoute: typeof ApiLoginRoute
+  ApiSetupRoute: typeof ApiSetupRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -201,11 +252,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/setup': {
+      id: '/api/setup'
+      path: '/api/setup'
+      fullPath: '/api/setup'
+      preLoaderRoute: typeof ApiSetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/login': {
       id: '/api/login'
       path: '/api/login'
       fullPath: '/api/login'
       preLoaderRoute: typeof ApiLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/email-config': {
+      id: '/api/email-config'
+      path: '/api/email-config'
+      fullPath: '/api/email-config'
+      preLoaderRoute: typeof ApiEmailConfigRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/colaboradores': {
@@ -243,12 +308,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/config-email': {
+      id: '/_authenticated/config-email'
+      path: '/config-email'
+      fullPath: '/config-email'
+      preLoaderRoute: typeof AuthenticatedConfigEmailRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/colaboradores/': {
       id: '/_authenticated/colaboradores/'
       path: '/colaboradores'
       fullPath: '/colaboradores/'
       preLoaderRoute: typeof AuthenticatedColaboradoresIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/email-config/test': {
+      id: '/api/email-config/test'
+      path: '/test'
+      fullPath: '/api/email-config/test'
+      preLoaderRoute: typeof ApiEmailConfigTestRouteImport
+      parentRoute: typeof ApiEmailConfigRoute
     }
     '/api/colaboradores/$id': {
       id: '/api/colaboradores/$id'
@@ -268,6 +347,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedConfigEmailRoute: typeof AuthenticatedConfigEmailRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedGerarFormulariosRoute: typeof AuthenticatedGerarFormulariosRoute
   AuthenticatedImportarRoute: typeof AuthenticatedImportarRoute
@@ -276,6 +356,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedConfigEmailRoute: AuthenticatedConfigEmailRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedGerarFormulariosRoute: AuthenticatedGerarFormulariosRoute,
   AuthenticatedImportarRoute: AuthenticatedImportarRoute,
@@ -297,13 +378,27 @@ const ApiColaboradoresRouteChildren: ApiColaboradoresRouteChildren = {
 const ApiColaboradoresRouteWithChildren =
   ApiColaboradoresRoute._addFileChildren(ApiColaboradoresRouteChildren)
 
+interface ApiEmailConfigRouteChildren {
+  ApiEmailConfigTestRoute: typeof ApiEmailConfigTestRoute
+}
+
+const ApiEmailConfigRouteChildren: ApiEmailConfigRouteChildren = {
+  ApiEmailConfigTestRoute: ApiEmailConfigTestRoute,
+}
+
+const ApiEmailConfigRouteWithChildren = ApiEmailConfigRoute._addFileChildren(
+  ApiEmailConfigRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiApplyMigrationsRoute: ApiApplyMigrationsRoute,
   ApiColaboradoresRoute: ApiColaboradoresRouteWithChildren,
+  ApiEmailConfigRoute: ApiEmailConfigRouteWithChildren,
   ApiLoginRoute: ApiLoginRoute,
+  ApiSetupRoute: ApiSetupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

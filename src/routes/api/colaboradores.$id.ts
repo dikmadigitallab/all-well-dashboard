@@ -3,6 +3,7 @@
 // DELETE /api/colaboradores/$id — excluir
 import { createFileRoute } from "@tanstack/react-router";
 import { prisma } from "@/lib/prisma.server";
+import { requireAuth } from "@/lib/auth.server";
 
 function parseDate(v: unknown): Date | null {
   if (!v || v === "") return null;
@@ -13,8 +14,10 @@ function parseDate(v: unknown): Date | null {
 export const Route = createFileRoute("/api/colaboradores/$id")({
   server: {
     handlers: {
-      GET: async ({ params }) => {
+      GET: async ({ request, params }) => {
         try {
+          await requireAuth(request);
+
           const colaborador = await prisma.colaborador.findUnique({
             where: { id: params.id },
             include: { exames: { orderBy: { created_at: "desc" } } },
@@ -22,20 +25,19 @@ export const Route = createFileRoute("/api/colaboradores/$id")({
           if (!colaborador) {
             return Response.json(
               { ok: false, error: "Colaborador não encontrado" },
-              { status: 404 }
+              { status: 404 },
             );
           }
           return Response.json({ ok: true, data: colaborador });
         } catch (err) {
+          if (err instanceof Response) return err;
           console.error("[api/colaboradores] GET /:id:", err);
-          return Response.json(
-            { ok: false, error: "Erro ao buscar colaborador" },
-            { status: 500 }
-          );
+          return Response.json({ ok: false, error: "Erro ao buscar colaborador" }, { status: 500 });
         }
       },
-      PUT: async ({ params, request }) => {
+      PUT: async ({ request, params }) => {
         try {
+          await requireAuth(request);
           const body = await request.json();
           const updated = await prisma.colaborador.update({
             where: { id: params.id },
@@ -53,7 +55,6 @@ export const Route = createFileRoute("/api/colaboradores/$id")({
               escala_turno: body.escala_turno ?? null,
               ghe: body.ghe ?? null,
               periodicidade_meses: body.periodicidade_meses ?? 12,
-              unidade: body.unidade ?? null,
               ultimo_exame: parseDate(body.ultimo_exame),
               proximo_exame: parseDate(body.proximo_exame),
               status: body.status ?? "sem_exame",
@@ -63,24 +64,27 @@ export const Route = createFileRoute("/api/colaboradores/$id")({
           });
           return Response.json({ ok: true, data: updated });
         } catch (err) {
+          if (err instanceof Response) return err;
           console.error("[api/colaboradores] PUT /:id:", err);
           return Response.json(
             { ok: false, error: "Erro ao atualizar colaborador" },
-            { status: 500 }
+            { status: 500 },
           );
         }
       },
-      DELETE: async ({ params }) => {
+      DELETE: async ({ request, params }) => {
         try {
+          await requireAuth(request);
           await prisma.colaborador.delete({
             where: { id: params.id },
           });
           return Response.json({ ok: true });
         } catch (err) {
+          if (err instanceof Response) return err;
           console.error("[api/colaboradores] DELETE /:id:", err);
           return Response.json(
             { ok: false, error: "Erro ao excluir colaborador" },
-            { status: 500 }
+            { status: 500 },
           );
         }
       },

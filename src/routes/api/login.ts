@@ -1,23 +1,7 @@
-// POST /api/login — autenticação custom
+// POST /api/login — autenticação contra banco de dados
 import { createFileRoute } from "@tanstack/react-router";
-import { SignJWT } from "jose";
-import { readFileSync, existsSync } from "fs";
-import { resolve } from "path";
-
-function loadEnv(key: string): string {
-  if (process.env[key]) return process.env[key]!;
-  for (const path of [
-    resolve(process.cwd(), ".env"),
-    resolve(process.cwd(), "../.env"),
-  ]) {
-    if (existsSync(path)) {
-      const raw = readFileSync(path, "utf-8");
-      const match = raw.match(new RegExp(`^${key}=(.+)`, "m"));
-      if (match) return match[1].trim().replace(/^["']|["']$/g, "");
-    }
-  }
-  throw new Error(`${key} não encontrado`);
-}
+import { prisma } from "@/lib/prisma.server";
+import { verifyPassword, createToken } from "@/lib/auth.server";
 
 export const Route = createFileRoute("/api/login")({
   server: {
@@ -29,43 +13,53 @@ export const Route = createFileRoute("/api/login")({
 
           if (!username || !password) {
             return Response.json(
-              { error: "username e password obrigatórios" },
-              { status: 400 }
+              { ok: false, error: "username e password obrigatórios" },
+              { status: 400 },
             );
           }
 
-          const validUser = loadEnv("AUTH_USERNAME");
-          const validPass = loadEnv("AUTH_PASSWORD");
+          // Busca usuário no banco
+          const user = await prisma.user.findUnique({
+            where: { username },
+          });
 
-          if (username !== validUser || password !== validPass) {
+          if (!user || !user.ativo) {
             return Response.json(
-              { error: "Usuário ou senha inválidos" },
-              { status: 401 }
+              { ok: false, error: "Usuário ou senha inválidos" },
+              { status: 401 },
             );
           }
 
-          const secret = new TextEncoder().encode(loadEnv("AUTH_JWT_SECRET"));
+          // Verifica senha
+          const valid = await verifyPassword(password, user.password_hash);
+          if (!valid) {
+            return Response.json(
+              { ok: false, error: "Usuário ou senha inválidos" },
+              { status: 401 },
+            );
+          }
 
-          const user = {
-            id: "user-001",
-            username: loadEnv("AUTH_USERNAME"),
-            fullName: loadEnv("AUTH_USER_FULL_NAME"),
-            role: loadEnv("AUTH_USER_ROLE"),
-          };
+          // Gera token JWT
+          const token = await createToken({
+            id: user.id,
+            username: user.username,
+            fullName: user.full_name,
+            role: user.role,
+          });
 
-          const token = await new SignJWT({ sub: user.id, ...user })
-            .setProtectedHeader({ alg: "HS256" })
-            .setIssuedAt()
-            .setExpirationTime("24h")
-            .sign(secret);
-
-          return Response.json({ ok: true, token, user });
+          return Response.json({
+            ok: true,
+            token,
+            user: {
+              id: user.id,
+              username: user.username,
+              fullName: user.full_name,
+              role: user.role,
+            },
+          });
         } catch (err) {
           console.error("[login]", err);
-          return Response.json(
-            { error: "Erro interno do servidor" },
-            { status: 500 }
-          );
+          return Response.json({ ok: false, error: "Erro interno do servidor" }, { status: 500 });
         }
       },
     },

@@ -11,7 +11,7 @@ export interface AuthUser {
 // --- Login via API ---
 export async function login(
   username: string,
-  password: string
+  password: string,
 ): Promise<{ ok: true; token: string; user: AuthUser } | { ok: false; error: string }> {
   try {
     const res = await fetch("/api/login", {
@@ -71,4 +71,27 @@ export function getStoredUser(): AuthUser | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Retorna headers com Authorization Bearer para chamadas autenticadas.
+ */
+export function authHeaders(headers?: Record<string, string>): Record<string, string> {
+  const token = getStoredToken();
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...headers,
+  };
+}
+
+/**
+ * Wrapper do fetch que inclui o token automaticamente para URLs da própria API.
+ */
+export async function authFetch(
+  url: string,
+  options?: RequestInit & { headers?: Record<string, string> },
+): Promise<Response> {
+  const headers = authHeaders(options?.headers);
+  return fetch(url, { ...options, headers });
 }

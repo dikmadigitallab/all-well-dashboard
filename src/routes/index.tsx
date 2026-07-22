@@ -17,7 +17,9 @@ function Landing() {
       <header className="border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-md bg-primary text-primary-foreground flex items-center justify-center font-semibold">A</div>
+            <div className="h-9 w-9 rounded-md bg-primary text-primary-foreground flex items-center justify-center font-semibold">
+              A
+            </div>
             <div className="font-semibold">Controle de ASOs</div>
           </div>
           <Button asChild size="sm">
@@ -47,9 +49,21 @@ function Landing() {
 
         <div className="mt-20 grid gap-6 md:grid-cols-3">
           {[
-            { icon: BarChart3, title: "Dashboard gerencial", desc: "KPIs em tempo real: em dia, a vencer, vencido, por empresa, unidade e setor." },
-            { icon: FileSpreadsheet, title: "Importação da base", desc: "Suba sua planilha e mantenha todos os colaboradores atualizados em segundos." },
-            { icon: Bell, title: "Alertas automáticos", desc: "Notificações no painel e por e-mail de ASOs próximos do vencimento." },
+            {
+              icon: BarChart3,
+              title: "Dashboard gerencial",
+              desc: "KPIs em tempo real: em dia, a vencer, vencido, por empresa, unidade e setor.",
+            },
+            {
+              icon: FileSpreadsheet,
+              title: "Importação da base",
+              desc: "Suba sua planilha e mantenha todos os colaboradores atualizados em segundos.",
+            },
+            {
+              icon: Bell,
+              title: "Alertas automáticos",
+              desc: "Notificações no painel e por e-mail de ASOs próximos do vencimento.",
+            },
           ].map((f) => (
             <div key={f.title} className="p-6 rounded-lg border border-border bg-card shadow-panel">
               <f.icon className="h-6 w-6 text-primary" />

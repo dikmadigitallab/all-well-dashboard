@@ -1,6 +1,12 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { AuthUser } from "@/lib/custom-auth";
-import { login as loginFn, storeToken, clearToken, getStoredToken, getStoredUser } from "@/lib/custom-auth";
+import {
+  login as loginFn,
+  storeToken,
+  clearToken,
+  getStoredToken,
+  getStoredUser,
+} from "@/lib/custom-auth";
 
 export type AppRole = "admin" | "gestor";
 

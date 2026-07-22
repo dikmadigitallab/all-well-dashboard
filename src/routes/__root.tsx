@@ -80,9 +80,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Controle de ASOs — Gestão de Saúde Ocupacional" },
-      { name: "description", content: "Plataforma para gestão de Atestados de Saúde Ocupacional, controle de exames, comparecimento, pendências e indicadores em tempo real." },
+      {
+        name: "description",
+        content:
+          "Plataforma para gestão de Atestados de Saúde Ocupacional, controle de exames, comparecimento, pendências e indicadores em tempo real.",
+      },
       { property: "og:title", content: "Controle de ASOs" },
-      { property: "og:description", content: "Gerencie ASOs, exames ocupacionais, comparecimento, pendências e indicadores em um só lugar." },
+      {
+        property: "og:description",
+        content:
+          "Gerencie ASOs, exames ocupacionais, comparecimento, pendências e indicadores em um só lugar.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

@@ -1,24 +1,18 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import {
-  LayoutDashboard,
-  Users,
-  Upload,
-  LogOut,
-  ShieldCheck,
-  Eye,
-  FileText,
-} from "lucide-react";
+import { LayoutDashboard, Users, Upload, LogOut, ShieldCheck, Eye, FileText, Mail } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const nav: Array<{ to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean }> = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/colaboradores", label: "Colaboradores", icon: Users },
-  { to: "/importar", label: "Importar planilha", icon: Upload, adminOnly: true },
-  { to: "/gerar-formularios", label: "Gerar formulários", icon: FileText, adminOnly: true },
-];
+const nav: Array<{ to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean }> =
+  [
+    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/colaboradores", label: "Colaboradores", icon: Users },
+    { to: "/importar", label: "Importar planilha", icon: Upload, adminOnly: true },
+    { to: "/gerar-formularios", label: "Gerar formulários", icon: FileText, adminOnly: true },
+    { to: "/config-email", label: "Config. Email", icon: Mail },
+  ];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, isAdmin, signOut } = useAuth();
@@ -40,7 +34,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
             <div>
               <div className="text-sm font-semibold leading-tight">Controle de ASOs</div>
-              <div className="text-[11px] text-sidebar-foreground/70">Gestão de Saúde Ocupacional</div>
+              <div className="text-[11px] text-sidebar-foreground/70">
+                Gestão de Saúde Ocupacional
+              </div>
             </div>
           </div>
         </div>
@@ -70,7 +66,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <div className="p-3 border-t border-sidebar-border space-y-2">
           <div className="px-3 py-2 rounded-md bg-sidebar-accent/40 text-xs">
-            <div className="font-medium truncate">{user?.fullName ?? user?.username ?? "Usuário"}</div>
+            <div className="font-medium truncate">
+              {user?.fullName ?? user?.username ?? "Usuário"}
+            </div>
             <div className="mt-1 flex items-center gap-1 text-sidebar-foreground/80">
               {isAdmin ? (
                 <>

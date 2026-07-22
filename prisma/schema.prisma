@@ -57,6 +57,20 @@ enum AlertaTipo {
 
 // ─── Tables ───
 
+/// Usuários do sistema (autenticação custom)
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  username      String    @unique @db.VarChar(100)
+  password_hash String    @db.Text
+  full_name     String?   @db.Text
+  role          AppRole   @default(gestor)
+  ativo         Boolean   @default(true)
+  created_at    DateTime  @default(now()) @db.Timestamptz
+  updated_at    DateTime  @default(now()) @updatedAt @db.Timestamptz
+
+  @@map("users")
+}
+
 /// Vinculado ao auth.users (não gerenciado pelo Prisma)
 model Profile {
   id        String   @id @default(uuid()) @db.Uuid
@@ -155,4 +169,39 @@ model Alerta {
 
   @@index([lido])
   @@map("alertas")
+}
+
+/// Configurações de busca de email por usuário
+model EmailConfig {
+  id                      String   @id @default(uuid()) @db.Uuid
+  user_id                 String   @db.Uuid
+  email_address           String   @db.Text
+  email_password_enc      String   @db.Text
+  imap_host               String   @default("imap.gmail.com") @db.Text
+  imap_port               Int      @default(993)
+  search_term             String?  @db.Text
+  sender_filter           String?  @db.Text
+  folder                  String   @default("INBOX") @db.Text
+  /// Configurações SMTP (envio)
+  smtp_host               String?  @db.Text
+  smtp_port               Int?     @default(587)
+  ativo                   Boolean  @default(true)
+  created_at              DateTime @default(now()) @db.Timestamptz
+  updated_at              DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  @@index([user_id])
+  @@map("email_configs")
+}
+
+/// Histórico de execução da rotina de email
+model EmailLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  config_id   String   @db.Uuid
+  status      String   @db.VarChar(20)
+  message     String?  @db.Text
+  emails_found Int?
+  executed_at DateTime @default(now()) @db.Timestamptz
+
+  @@index([config_id])
+  @@map("email_logs")
 }

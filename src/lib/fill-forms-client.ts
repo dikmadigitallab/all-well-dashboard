@@ -41,7 +41,9 @@ function escXml(str: string): string {
 }
 
 function norm(s: string): string {
-  return String(s || "").trim().toLowerCase();
+  return String(s || "")
+    .trim()
+    .toLowerCase();
 }
 
 // ─── Excel parsing ───────────────────────────────────────────
@@ -49,7 +51,7 @@ const HEADER_MAP: Record<string, string> = {
   nome: "nome",
   formulario: "formulario",
   funcao: "funcao",
-  "função": "funcao",
+  função: "funcao",
   "matricula sap": "matricula_sap",
   "matrícula sap": "matricula_sap",
   cpf: "cpf",
@@ -88,10 +90,7 @@ function escapeRegex(str: string): string {
 }
 
 // ─── Fill single document ────────────────────────────────────
-async function fillDocx(
-  templateUrl: string,
-  row: Record<string, unknown>
-): Promise<Uint8Array> {
+async function fillDocx(templateUrl: string, row: Record<string, unknown>): Promise<Uint8Array> {
   // Fetch template
   const resp = await fetch(templateUrl);
   if (!resp.ok) throw new Error(`Erro ao carregar template: ${resp.status}`);
@@ -120,10 +119,7 @@ async function fillDocx(
 
     const escaped = escXml(value);
     const label = field.label;
-    const re = new RegExp(
-      `(<w:t[^>]*>)${escapeRegex(label)}\\s*<\\/w:t>`,
-      "g"
-    );
+    const re = new RegExp(`(<w:t[^>]*>)${escapeRegex(label)}\\s*<\\/w:t>`, "g");
     xml = xml.replace(re, `$1${label} ${escaped}</w:t>`);
   }
 
@@ -150,7 +146,7 @@ export interface FillResult {
  */
 export async function generateFilledForms(
   excelFile: File,
-  onProgress?: (nome: string, total: number, atual: number) => void
+  onProgress?: (nome: string, total: number, atual: number) => void,
 ): Promise<{ zip: Uint8Array; result: FillResult }> {
   const result: FillResult = { success: 0, errors: 0, details: [] };
 
@@ -182,15 +178,14 @@ export async function generateFilledForms(
     if (!row.nome) continue;
 
     atual++;
-    const nome = String(row.nome).replace(/[\/\\:*?"<>|]/g, "_").trim();
+    const nome = String(row.nome)
+      .replace(/[\\/:*?"<>|]/g, "_")
+      .trim();
     const cpf = String(row.cpf || "").replace(/\D/g, "");
 
     try {
       const formulario = Number(row.formulario) || 2;
-      const templateUrl =
-        formulario === 1
-          ? "/formulario%201.docx"
-          : "/formulario%202.docx";
+      const templateUrl = formulario === 1 ? "/formulario%201.docx" : "/formulario%202.docx";
 
       const docxBuf = await fillDocx(templateUrl, row);
 

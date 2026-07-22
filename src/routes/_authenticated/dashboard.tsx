@@ -2,13 +2,31 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line, Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  Legend,
 } from "recharts";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import type { Colaborador } from "@/lib/colaboradores";
 import { STATUS_LABEL } from "@/lib/colaboradores";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { authFetch } from "@/lib/custom-auth";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CheckCircle2, AlertTriangle, XCircle, Users } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -31,18 +49,39 @@ function Dashboard() {
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["colab-dash"],
     queryFn: async () => {
-      const res = await fetch("/api/colaboradores");
+      const res = await authFetch("/api/colaboradores");
       if (!res.ok) throw new Error("Erro ao buscar dados");
       const json = await res.json();
-      return (json.data as Colaborador[]).map(({ id, empresa, unidade, setor, funcao, status, proximo_exame, ativo }) => ({
-        id, empresa, unidade, setor, funcao, status, proximo_exame, ativo,
-      })) as Pick<Colaborador, "id" | "empresa" | "unidade" | "setor" | "funcao" | "status" | "proximo_exame" | "ativo">[];
+      return (json.data as Colaborador[]).map(
+        ({ id, empresa, unidade, setor, funcao, status, proximo_exame, ativo }) => ({
+          id,
+          empresa,
+          unidade,
+          setor,
+          funcao,
+          status,
+          proximo_exame,
+          ativo,
+        }),
+      ) as Pick<
+        Colaborador,
+        "id" | "empresa" | "unidade" | "setor" | "funcao" | "status" | "proximo_exame" | "ativo"
+      >[];
     },
   });
 
-  const empresas = useMemo(() => Array.from(new Set(rows.map((r) => r.empresa).filter(Boolean) as string[])).sort(), [rows]);
-  const unidades = useMemo(() => Array.from(new Set(rows.map((r) => r.unidade).filter(Boolean) as string[])).sort(), [rows]);
-  const setores = useMemo(() => Array.from(new Set(rows.map((r) => r.setor).filter(Boolean) as string[])).sort(), [rows]);
+  const empresas = useMemo(
+    () => Array.from(new Set(rows.map((r) => r.empresa).filter(Boolean) as string[])).sort(),
+    [rows],
+  );
+  const unidades = useMemo(
+    () => Array.from(new Set(rows.map((r) => r.unidade).filter(Boolean) as string[])).sort(),
+    [rows],
+  );
+  const setores = useMemo(
+    () => Array.from(new Set(rows.map((r) => r.setor).filter(Boolean) as string[])).sort(),
+    [rows],
+  );
 
   const filtered = useMemo(
     () =>
@@ -72,7 +111,10 @@ function Dashboard() {
   ];
 
   const porUnidade = useMemo(() => {
-    const map = new Map<string, { em_dia: number; a_vencer: number; vencido: number; sem_exame: number }>();
+    const map = new Map<
+      string,
+      { em_dia: number; a_vencer: number; vencido: number; sem_exame: number }
+    >();
     for (const r of filtered) {
       const k = r.unidade || "—";
       const cur = map.get(k) ?? { em_dia: 0, a_vencer: 0, vencido: 0, sem_exame: 0 };
@@ -81,7 +123,14 @@ function Dashboard() {
     }
     return Array.from(map.entries())
       .map(([name, v]) => ({ name, ...v }))
-      .sort((a, b) => b.em_dia + b.a_vencer + b.vencido + b.sem_exame - (a.em_dia + a.a_vencer + a.vencido + a.sem_exame))
+      .sort(
+        (a, b) =>
+          b.em_dia +
+          b.a_vencer +
+          b.vencido +
+          b.sem_exame -
+          (a.em_dia + a.a_vencer + a.vencido + a.sem_exame),
+      )
       .slice(0, 10);
   }, [filtered]);
 
@@ -94,7 +143,8 @@ function Dashboard() {
         const week = Math.floor((d.getTime() - now.getTime()) / (7 * 86400000));
         return `S${week >= 0 ? "+" : ""}${week}`;
       }
-      if (periodo === "trimestral") return `${d.getFullYear()}·T${Math.floor(d.getMonth() / 3) + 1}`;
+      if (periodo === "trimestral")
+        return `${d.getFullYear()}·T${Math.floor(d.getMonth() / 3) + 1}`;
       if (periodo === "anual") return `${d.getFullYear()}`;
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     };
@@ -107,7 +157,9 @@ function Dashboard() {
       else b.a_vencer++;
       buckets.set(k, b);
     }
-    return Array.from(buckets.values()).sort((a, b) => a.periodo.localeCompare(b.periodo)).slice(-12);
+    return Array.from(buckets.values())
+      .sort((a, b) => a.periodo.localeCompare(b.periodo))
+      .slice(-12);
   }, [filtered, periodo]);
 
   return (
@@ -117,11 +169,23 @@ function Dashboard() {
         description={isLoading ? "Carregando dados..." : `${total} colaboradores no filtro atual`}
         actions={
           <div className="flex flex-wrap gap-2">
-            <FilterSelect value={empresa} onChange={setEmpresa} placeholder="Empresa" options={empresas} />
-            <FilterSelect value={unidade} onChange={setUnidade} placeholder="Unidade" options={unidades} />
+            <FilterSelect
+              value={empresa}
+              onChange={setEmpresa}
+              placeholder="Empresa"
+              options={empresas}
+            />
+            <FilterSelect
+              value={unidade}
+              onChange={setUnidade}
+              placeholder="Unidade"
+              options={unidades}
+            />
             <FilterSelect value={setor} onChange={setSetor} placeholder="Setor" options={setores} />
             <Select value={periodo} onValueChange={(v) => setPeriodo(v as typeof periodo)}>
-              <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="semanal">Semanal</SelectItem>
                 <SelectItem value="mensal">Mensal</SelectItem>
@@ -135,9 +199,27 @@ function Dashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard icon={Users} label="Total" value={total} tone="neutral" />
-        <KpiCard icon={CheckCircle2} label={STATUS_LABEL.em_dia} value={counts.em_dia} pct={pct(counts.em_dia)} tone="ok" />
-        <KpiCard icon={AlertTriangle} label={STATUS_LABEL.a_vencer} value={counts.a_vencer} pct={pct(counts.a_vencer)} tone="warn" />
-        <KpiCard icon={XCircle} label={STATUS_LABEL.vencido} value={counts.vencido} pct={pct(counts.vencido)} tone="danger" />
+        <KpiCard
+          icon={CheckCircle2}
+          label={STATUS_LABEL.em_dia}
+          value={counts.em_dia}
+          pct={pct(counts.em_dia)}
+          tone="ok"
+        />
+        <KpiCard
+          icon={AlertTriangle}
+          label={STATUS_LABEL.a_vencer}
+          value={counts.a_vencer}
+          pct={pct(counts.a_vencer)}
+          tone="warn"
+        />
+        <KpiCard
+          icon={XCircle}
+          label={STATUS_LABEL.vencido}
+          value={counts.vencido}
+          pct={pct(counts.vencido)}
+          tone="danger"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
@@ -146,7 +228,14 @@ function Dashboard() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={statusData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={90} paddingAngle={2}>
+                <Pie
+                  data={statusData}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={50}
+                  outerRadius={90}
+                  paddingAngle={2}
+                >
                   {statusData.map((d) => (
                     <Cell key={d.key} fill={STATUS_COLORS[d.key]} />
                   ))}
@@ -164,14 +253,26 @@ function Dashboard() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={porUnidade}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-25} textAnchor="end" height={70} />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 11 }}
+                  interval={0}
+                  angle={-25}
+                  textAnchor="end"
+                  height={70}
+                />
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip />
                 <Legend iconSize={10} />
                 <Bar dataKey="em_dia" stackId="a" fill="var(--status-ok)" name="Em dia" />
                 <Bar dataKey="a_vencer" stackId="a" fill="var(--status-warn)" name="A vencer" />
                 <Bar dataKey="vencido" stackId="a" fill="var(--status-danger)" name="Vencido" />
-                <Bar dataKey="sem_exame" stackId="a" fill="var(--status-neutral)" name="Sem exame" />
+                <Bar
+                  dataKey="sem_exame"
+                  stackId="a"
+                  fill="var(--status-neutral)"
+                  name="Sem exame"
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -188,8 +289,20 @@ function Dashboard() {
               <YAxis tick={{ fontSize: 11 }} />
               <Tooltip />
               <Legend iconSize={10} />
-              <Line type="monotone" dataKey="a_vencer" stroke="var(--status-warn)" strokeWidth={2} name="A vencer" />
-              <Line type="monotone" dataKey="vencidos" stroke="var(--status-danger)" strokeWidth={2} name="Vencidos" />
+              <Line
+                type="monotone"
+                dataKey="a_vencer"
+                stroke="var(--status-warn)"
+                strokeWidth={2}
+                name="A vencer"
+              />
+              <Line
+                type="monotone"
+                dataKey="vencidos"
+                stroke="var(--status-danger)"
+                strokeWidth={2}
+                name="Vencidos"
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -199,23 +312,44 @@ function Dashboard() {
 }
 
 function FilterSelect({
-  value, onChange, placeholder, options,
-}: { value: string; onChange: (v: string) => void; placeholder: string; options: string[] }) {
+  value,
+  onChange,
+  placeholder,
+  options,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  options: string[];
+}) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="w-[160px]"><SelectValue placeholder={placeholder} /></SelectTrigger>
+      <SelectTrigger className="w-[160px]">
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
       <SelectContent>
         <SelectItem value="__all__">Todas as {placeholder.toLowerCase()}s</SelectItem>
-        {options.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+        {options.map((o) => (
+          <SelectItem key={o} value={o}>
+            {o}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );
 }
 
 function KpiCard({
-  icon: Icon, label, value, pct, tone,
+  icon: Icon,
+  label,
+  value,
+  pct,
+  tone,
 }: {
-  icon: typeof Users; label: string; value: number; pct?: number;
+  icon: typeof Users;
+  label: string;
+  value: number;
+  pct?: number;
   tone: "ok" | "warn" | "danger" | "neutral";
 }) {
   const toneClass = {

@@ -4,6 +4,7 @@ import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { Upload, FileSpreadsheet, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { authFetch } from "@/lib/custom-auth";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 
@@ -16,21 +17,21 @@ const HEADER_MAP: Record<string, string> = {
   nome: "nome",
   empresa: "empresa",
   area: "area",
-  "área": "area",
+  área: "area",
   setor: "setor",
   funcao: "funcao",
-  "função": "funcao",
+  função: "funcao",
   "matricula sap": "matricula_sap",
   "matrícula sap": "matricula_sap",
   matricula: "matricula_sap",
-  "matrícula": "matricula_sap",
+  matrícula: "matricula_sap",
   cpf: "cpf",
   rg: "rg",
   pis: "pis",
   nascimento: "nascimento",
   "data de nascimento": "nascimento",
-  "escala": "escala_turno",
-  "turno": "escala_turno",
+  escala: "escala_turno",
+  turno: "escala_turno",
   "escala/turno": "escala_turno",
   "escala /turno": "escala_turno",
   ghe: "ghe",
@@ -86,7 +87,7 @@ function parseSheet(rows: Record<string, unknown>[]): Record<string, unknown>[] 
       }
       return rec;
     })
-    .filter((r) => r.nome && r.nome.trim().length > 0);
+    .filter((r: Record<string, unknown>) => String(r.nome ?? "").trim().length > 0);
 }
 
 function ImportarPage() {
@@ -97,8 +98,6 @@ function ImportarPage() {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState<{ inserted: number; skipped: number } | null>(null);
-
-  if (!isAdmin) return <Navigate to="/dashboard" />;
 
   const onFile = async (f: File) => {
     setFile(f);
@@ -121,9 +120,8 @@ function ImportarPage() {
     for (let i = 0; i < preview.length; i += BATCH) {
       const chunk = preview.slice(i, i + BATCH);
       try {
-        const res = await fetch("/api/colaboradores", {
+        const res = await authFetch("/api/colaboradores", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(chunk),
         });
         if (!res.ok) throw new Error(await res.text());
@@ -133,9 +131,8 @@ function ImportarPage() {
         // Tenta inserir um por um
         for (const row of chunk) {
           try {
-            await fetch("/api/colaboradores", {
+            await authFetch("/api/colaboradores", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
               body: JSON.stringify(row),
             });
             inserted++;
@@ -156,6 +153,8 @@ function ImportarPage() {
     return Object.keys(preview[0]);
   }, [preview]);
 
+  if (!isAdmin) return <Navigate to="/dashboard" />;
+
   return (
     <PageContainer>
       <PageHeader
@@ -173,7 +172,10 @@ function ImportarPage() {
           />
           <FileSpreadsheet className="h-10 w-10 mx-auto text-muted-foreground" />
           <div className="mt-3 font-medium">Clique para selecionar um arquivo Excel</div>
-          <div className="text-xs text-muted-foreground mt-1">Colunas esperadas: NOME, EMPRESA, ÁREA, SETOR, FUNÇÃO, CPF, RG, PIS, Nascimento, ESCALA/TURNO, GHE, PERIODICIDADE, UNIDADE, ÚLTIMO EXAME, PRÓXIMO EXAME</div>
+          <div className="text-xs text-muted-foreground mt-1">
+            Colunas esperadas: NOME, EMPRESA, ÁREA, SETOR, FUNÇÃO, CPF, RG, PIS, Nascimento,
+            ESCALA/TURNO, GHE, PERIODICIDADE, UNIDADE, ÚLTIMO EXAME, PRÓXIMO EXAME
+          </div>
         </label>
       )}
 
@@ -187,9 +189,20 @@ function ImportarPage() {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => { setFile(null); setPreview([]); setDone(null); }}>Trocar arquivo</Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setFile(null);
+                  setPreview([]);
+                  setDone(null);
+                }}
+              >
+                Trocar arquivo
+              </Button>
               <Button size="sm" onClick={importar} disabled={busy || preview.length === 0}>
-                <Upload className="h-4 w-4 mr-2" />{busy ? `${progress}%` : "Confirmar importação"}
+                <Upload className="h-4 w-4 mr-2" />
+                {busy ? `${progress}%` : "Confirmar importação"}
               </Button>
             </div>
           </div>
@@ -199,13 +212,28 @@ function ImportarPage() {
               <CheckCircle2 className="h-4 w-4 text-status-ok" />
               <div>
                 <span className="font-medium">{done.inserted}</span> registros importados
-                {done.skipped > 0 && <> · <span className="text-status-danger">{done.skipped} falharam</span></>}.
-                <Button variant="link" size="sm" className="px-2" onClick={() => navigate({ to: "/colaboradores" })}>Ver colaboradores →</Button>
+                {done.skipped > 0 && (
+                  <>
+                    {" "}
+                    · <span className="text-status-danger">{done.skipped} falharam</span>
+                  </>
+                )}
+                .
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="px-2"
+                  onClick={() => navigate({ to: "/colaboradores" })}
+                >
+                  Ver colaboradores →
+                </Button>
               </div>
             </div>
           )}
 
-          <div className="text-xs text-muted-foreground mb-2">Campos detectados: {detectedHeaders.join(", ") || "—"}</div>
+          <div className="text-xs text-muted-foreground mb-2">
+            Campos detectados: {detectedHeaders.join(", ") || "—"}
+          </div>
 
           <div className="rounded-md border border-border overflow-hidden">
             <div className="overflow-x-auto max-h-[400px]">
@@ -224,11 +252,21 @@ function ImportarPage() {
                   {preview.slice(0, 100).map((r, i) => (
                     <tr key={i} className="border-t border-border">
                       <td className="px-3 py-1.5">{r.nome as string}</td>
-                      <td className="px-3 py-1.5 text-muted-foreground">{r.empresa as string ?? "—"}</td>
-                      <td className="px-3 py-1.5 text-muted-foreground">{r.unidade as string ?? "—"}</td>
-                      <td className="px-3 py-1.5 text-muted-foreground">{r.funcao as string ?? "—"}</td>
-                      <td className="px-3 py-1.5 text-muted-foreground">{r.cpf as string ?? "—"}</td>
-                      <td className="px-3 py-1.5 text-muted-foreground">{r.proximo_exame as string ?? "—"}</td>
+                      <td className="px-3 py-1.5 text-muted-foreground">
+                        {(r.empresa as string) ?? "—"}
+                      </td>
+                      <td className="px-3 py-1.5 text-muted-foreground">
+                        {(r.unidade as string) ?? "—"}
+                      </td>
+                      <td className="px-3 py-1.5 text-muted-foreground">
+                        {(r.funcao as string) ?? "—"}
+                      </td>
+                      <td className="px-3 py-1.5 text-muted-foreground">
+                        {(r.cpf as string) ?? "—"}
+                      </td>
+                      <td className="px-3 py-1.5 text-muted-foreground">
+                        {(r.proximo_exame as string) ?? "—"}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

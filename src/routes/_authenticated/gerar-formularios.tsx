@@ -2,7 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
-import { Upload, FileSpreadsheet, Download, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  Upload,
+  FileSpreadsheet,
+  Download,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { generateFilledForms } from "@/lib/fill-forms-client";
@@ -14,14 +21,16 @@ export const Route = createFileRoute("/_authenticated/gerar-formularios")({
 
 // ─── Helpers ─────────────────────────────────────────────────
 function norm(s: string) {
-  return String(s || "").trim().toLowerCase();
+  return String(s || "")
+    .trim()
+    .toLowerCase();
 }
 
 const HEADER_MAP: Record<string, string> = {
   nome: "nome",
   formulario: "formulario",
   funcao: "funcao",
-  "função": "funcao",
+  função: "funcao",
   "matricula sap": "matricula_sap",
   "matrícula sap": "matricula_sap",
   cpf: "cpf",
@@ -62,14 +71,8 @@ function GerarFormulariosPage() {
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState<{ success: number; errors: number } | null>(null);
 
-  const form1Count = useMemo(
-    () => preview.filter((r) => r.formulario === 1).length,
-    [preview]
-  );
-  const form2Count = useMemo(
-    () => preview.filter((r) => r.formulario === 2).length,
-    [preview]
-  );
+  const form1Count = useMemo(() => preview.filter((r) => r.formulario === 1).length, [preview]);
+  const form2Count = useMemo(() => preview.filter((r) => r.formulario === 2).length, [preview]);
 
   const onFile = async (f: File) => {
     setFile(f);
@@ -95,7 +98,7 @@ function GerarFormulariosPage() {
       });
 
       // Download ZIP
-      const blob = new Blob([zip], { type: "application/zip" });
+      const blob = new Blob([zip as BlobPart], { type: "application/zip" });
       const nomePlanilha = file.name.replace(/\.\w+$/, "");
       saveAs(blob, `${nomePlanilha}_formularios_preenchidos.zip`);
 
@@ -104,10 +107,9 @@ function GerarFormulariosPage() {
       if (result.errors === 0) {
         toast.success(`${result.success} formulários gerados com sucesso!`);
       } else {
-        toast.success(
-          `${result.success} gerados, ${result.errors} com erro`,
-          { description: "Verifique o relatório para mais detalhes." }
-        );
+        toast.success(`${result.success} gerados, ${result.errors} com erro`, {
+          description: "Verifique o relatório para mais detalhes.",
+        });
       }
     } catch (err) {
       toast.error("Erro ao gerar formulários", {
@@ -177,11 +179,7 @@ function GerarFormulariosPage() {
               >
                 Trocar arquivo
               </Button>
-              <Button
-                size="sm"
-                onClick={gerar}
-                disabled={busy || preview.length === 0}
-              >
+              <Button size="sm" onClick={gerar} disabled={busy || preview.length === 0}>
                 {busy ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -212,10 +210,7 @@ function GerarFormulariosPage() {
                     · <span className="text-status-danger">{done.errors}</span> com erro
                   </>
                 )}
-                .
-                <div className="text-muted-foreground mt-1">
-                  O download do ZIP foi iniciado.
-                </div>
+                .<div className="text-muted-foreground mt-1">O download do ZIP foi iniciado.</div>
               </div>
             </div>
           )}

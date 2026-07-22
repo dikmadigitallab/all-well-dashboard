@@ -1,81 +1,68 @@
 # Checkpoints — Última Sessão
 
-## Data: 17/07/2026
+## Data: 22/07/2026 (Sessão 2)
 
 ## Alterações Realizadas
 
-<<<<<<< HEAD
-### Prisma ORM
-- ✅ Prisma 7.8.0 + @prisma/adapter-pg instalados
-- ✅ `prisma/schema.prisma` criado com models: Profile, UserRole, Colaborador, Exame, Alerta + 6 enums
-- ✅ `prisma.config.ts` configurado com DATABASE_URL
-- ✅ `prisma db generate` — client gerado
-- ✅ `prisma db push` — schema sincronizado com o banco (pooler Supabase)
-- ✅ FK constraints para `auth.users` removidas
-- ✅ RLS policies e funções (has_role, is_admin) removidas
-- ✅ `src/lib/prisma.server.ts` — singleton com PrismaPg adapter
+### Schema — EmailConfig e EmailLog
+- ✅ Adicionado model `EmailConfig` em `prisma/schema.prisma` (tabela `email_configs`)
+  - Campos: id, user_id, email_address, email_password_enc, imap_host, imap_port, search_term, sender_filter, folder, ativo, timestamps
+  - Index em user_id
+- ✅ Adicionado model `EmailLog` em `prisma/schema.prisma` (tabela `email_logs`)
+  - Campos: id, config_id, status, message, emails_found, executed_at
+- ✅ `prisma generate` e `prisma db push` executados com sucesso
 
-### APIs de Dados
-- ✅ `GET/POST /api/colaboradores` — listar (orderBy nome, limit 5000) / criar (single ou batch)
-- ✅ `GET /api/colaboradores/$id` — buscar com exames incluídos
-- ✅ `PUT /api/colaboradores/$id` — atualizar
-- ✅ `DELETE /api/colaboradores/$id` — remover
+### Criptografia
+- ✅ `src/lib/email-crypto.ts` criado:
+  - `encryptPassword(plaintext)` — AES-256-GCM, retorna `iv:authTag:ciphertext` em base64
+  - `decryptPassword(encryptedData)` — descriptografa usando chave derivada do AUTH_JWT_SECRET
 
-### Frontend Atualizado
-- ✅ `src/routes/_authenticated/colaboradores/index.tsx` — usa fetch /api/colaboradores
-- ✅ `src/routes/_authenticated/colaboradores/$id.tsx` — usa fetch CRUD via API
-- ✅ `src/routes/_authenticated/dashboard.tsx` — usa fetch /api/colaboradores
-- ✅ `src/routes/_authenticated/importar.tsx` — usa fetch POST /api/colaboradores (batch)
-- ✅ Build passou sem erros
+### Serviço IMAP
+- ✅ `src/lib/email-service.ts` criado:
+  - `searchEmails(params)` — conecta via ImapFlow, busca UNSEEN, filtra por termo e remetente
+  - `searchWithConfig(config)` — descriptografa senha e executa busca
+  - Tratamento de erros, timeout, logout
 
-### Arquivos Temporários
-- ✅ `tmp-fk-query.sql`, `tmp-drop-fks.sql`, `tmp-drop-deps.sql` removidos
+### API Routes
+- ✅ `src/routes/api/email-config.ts`:
+  - `GET /api/email-config` — retorna config do usuário (sem senha)
+  - `PUT /api/email-config` — cria ou atualiza config (upsert por user_id)
+- ✅ `src/routes/api/email-config.test.ts`:
+  - `POST /api/email-config/test` — testa conexão e retorna resultados
 
-### .env
-- ✅ Adicionada `DATABASE_URL` com connection string PostgreSQL
+### Página de Configuração
+- ✅ `src/routes/_authenticated/config-email.tsx` criada:
+  - Card "Dados da Conta": email, senha, servidor, porta, pasta
+  - Card "Filtros de Busca": termo de busca, remetente, ativar/desativar
+  - Card "Ações": Salvar, Testar conexão, Buscar emails agora
+  - Cache local via localStorage (fallback offline)
+  - Exibição de resultados após busca
 
-## Nova Estrutura
-```
-prisma/
-├── schema.prisma      # Schema oficial do banco
-├── prisma.config.ts    # Config Prisma CLI
-src/
-├── lib/
-│   ├── prisma.server.ts  # PrismaClient singleton (server-only)
-│   └── ...
-├── routes/
-│   ├── api/
-│   │   ├── colaboradores.ts    # List/criar
-│   │   ├── colaboradores.$id.ts # Buscar/atualizar/deletar
-│   │   └── ...
-│   └── ...
-```
+### Navegação
+- ✅ Adicionado item "Config. Email" (ícone Mail) na sidebar do AppShell
+- ✅ Rotas geradas: `/config-email`, `/api/email-config`, `/api/email-config/test`
 
-## Próximos Passos
-1. Criar tabela `users` própria e migrar auth custom (sair do .env)
-2. Limpar arquivos legados Supabase (`integrations/supabase/`)
-3. Migrar tipos de `@/integrations/supabase/types` para tipos do Prisma
-4. Considerar adicionar outros CRUDs (exames, alertas, dashboard consolidado)
-=======
-### Autenticação Custom
-- ✅ `.env`: adicionadas vars `AUTH_USERNAME`, `AUTH_PASSWORD`, `AUTH_JWT_SECRET`, `AUTH_USER_FULL_NAME`, `AUTH_USER_ROLE`
-- ✅ `src/lib/custom-auth.ts`: servidor de auth (login + verifyToken com JWT via `jose`)
-- ✅ `src/hooks/use-auth.tsx`: substituído por contexto custom (sem Supabase Auth)
-- ✅ `src/routes/auth.tsx`: login simplificado (usuário/senha, sem cadastro)
-- ✅ `src/routes/index.tsx`: compatível com novo auth
-- ✅ `src/routes/_authenticated/route.tsx`: guard compatível
-- ✅ `src/components/app-shell.tsx`: exibe fullName do usuário
-- ✅ `src/start.ts`: removido `attachSupabaseAuth` do middleware
-- ✅ Build passou sem erros
+### SMTP — Envio de Emails
+- ✅ `nodemailer` e `@types/nodemailer` instalados
+- ✅ Schema: adicionados campos `smtp_host` (String?) e `smtp_port` (Int?) no model `EmailConfig`
+- ✅ `prisma db push` executado
+- ✅ `src/lib/email-smtp.ts` criado:
+  - `sendConfirmationEmail(config)` — envia email "Configuração realizada com sucesso"
+  - `sendEmail(smtpConfig, to, subject, text, html?)` — envio genérico
+  - Usa nodemailer com suporte a STARTTLS (porta 587) e SSL (porta 465)
+- ✅ API `PUT /api/email-config` modificada:
+  - Aceita e salva `smtp_host` e `smtp_port`
+  - Após salvar com senha, tenta enviar email de confirmação
+  - Retorna `confirmation: { sent, error }` no response
+- ✅ Página `/config-email` atualizada:
+  - Novo card "Envio (SMTP)" com campos de servidor e porta
+  - Card de status do email de confirmação (sucesso/erro)
+  - Ícone `Send` e `CheckCircle2`/`XCircle` para feedback visual
+- ✅ `nodemailer` incluso no bundle Nitro
 
-### Supabase
-- ✅ `supabase/config.toml`: project_id atualizado para `gsxznhzbvcmkytfhkvug`
-- ❌ Conexão direta ao banco via pg não funciona (pooler rejeita senha em todas as regiões)
-- ❌ 4 migrations SQL não aplicadas
-- ⚠️  Usuário `maria_eduarda` criado via Supabase Auth admin API (não usado mais)
+### Dependências
+- ✅ `imapflow` instalado (conexão IMAP moderna)
+- ✅ `nodemailer` + `@types/nodemailer` instalados (envio SMTP)
 
-## Próximos Passos
-1. Resolver conexão ao banco (verificar senha no Supabase Dashboard)
-2. Aplicar migrations SQL
-3. Migrar auth para tabela própria no banco
->>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
+### Build
+- ✅ Build passou sem erros (client, SSR e Nitro)
