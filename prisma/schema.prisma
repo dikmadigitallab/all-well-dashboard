@@ -30,12 +30,14 @@ enum ExameTipo {
 }
 
 enum ExameStatus {
+  a_vencer
   agendado
   compareceu
   faltou
   pendente
   cancelado
   realizado
+  liberado
 }
 
 enum PendenciaMotivo {
@@ -138,6 +140,10 @@ model Exame {
   data_agendada    DateTime?       @db.Date
   data_realizado   DateTime?       @db.Date
   data_vencimento  DateTime?       @db.Date
+  data_1_etapa     DateTime?       @db.Date
+  data_2_etapa     DateTime?       @db.Date
+  justificativa_falta String?      @db.Text
+  etapa_faltou     Int?
   status           ExameStatus     @default(agendado)
   clinica          String?         @db.Text
   medico           String?         @db.Text
@@ -191,6 +197,19 @@ model EmailConfig {
 
   @@index([user_id])
   @@map("email_configs")
+}
+
+/// Emails de contato salvos para envio de notificações de exames
+model EmailContato {
+  id         String   @id @default(uuid()) @db.Uuid
+  email      String   @db.Text
+  nome       String?  @db.Text
+  created_by String?  @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  @@unique([email, created_by])
+  @@index([created_by])
+  @@map("email_contatos")
 }
 
 /// Histórico de execução da rotina de email

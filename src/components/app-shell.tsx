@@ -1,14 +1,17 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { LayoutDashboard, Users, Upload, LogOut, ShieldCheck, Eye, FileText, Mail } from "lucide-react";
+import { LayoutDashboard, Users, Upload, LogOut, ShieldCheck, Eye, FileText, Mail, CalendarPlus, Columns3 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "@/components/notification-bell";
 
 const nav: Array<{ to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean }> =
   [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/colaboradores", label: "Colaboradores", icon: Users },
+    { to: "/kanban-exames", label: "Kanban Exames", icon: Columns3, adminOnly: true },
+    { to: "/agendar-exames", label: "Agendar exames", icon: CalendarPlus, adminOnly: true },
     { to: "/importar", label: "Importar planilha", icon: Upload, adminOnly: true },
     { to: "/gerar-formularios", label: "Gerar formulários", icon: FileText, adminOnly: true },
     { to: "/config-email", label: "Config. Email", icon: Mail },
@@ -32,12 +35,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="h-9 w-9 rounded-md bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center font-semibold">
               A
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <div className="text-sm font-semibold leading-tight">Controle de ASOs</div>
               <div className="text-[11px] text-sidebar-foreground/70">
                 Gestão de Saúde Ocupacional
               </div>
             </div>
+            {isAdmin && <NotificationBell />}
           </div>
         </div>
 

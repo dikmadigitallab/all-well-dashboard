@@ -13,15 +13,23 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiSetupRouteImport } from './routes/api/setup'
+import { Route as ApiNotificacoesRouteImport } from './routes/api/notificacoes'
 import { Route as ApiLoginRouteImport } from './routes/api/login'
+import { Route as ApiGerarFormulariosColaboradoresRouteImport } from './routes/api/gerar-formularios-colaboradores'
+import { Route as ApiEmailsContatoRouteImport } from './routes/api/emails-contato'
 import { Route as ApiEmailConfigRouteImport } from './routes/api/email-config'
 import { Route as ApiColaboradoresRouteImport } from './routes/api/colaboradores'
 import { Route as ApiApplyMigrationsRouteImport } from './routes/api/apply-migrations'
+import { Route as AuthenticatedKanbanExamesRouteImport } from './routes/_authenticated/kanban-exames'
 import { Route as AuthenticatedImportarRouteImport } from './routes/_authenticated/importar'
 import { Route as AuthenticatedGerarFormulariosRouteImport } from './routes/_authenticated/gerar-formularios'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedConfigEmailRouteImport } from './routes/_authenticated/config-email'
+import { Route as AuthenticatedAgendarExamesRouteImport } from './routes/_authenticated/agendar-exames'
+import { Route as ApiExamesIndexRouteImport } from './routes/api/exames/index'
 import { Route as AuthenticatedColaboradoresIndexRouteImport } from './routes/_authenticated/colaboradores/index'
+import { Route as ApiExamesEnviarConfirmacaoRouteImport } from './routes/api/exames/enviar-confirmacao'
+import { Route as ApiExamesIdRouteImport } from './routes/api/exames/$id'
 import { Route as ApiEmailConfigTestRouteImport } from './routes/api/email-config.test'
 import { Route as ApiColaboradoresIdRouteImport } from './routes/api/colaboradores.$id'
 import { Route as AuthenticatedColaboradoresIdRouteImport } from './routes/_authenticated/colaboradores/$id'
@@ -45,9 +53,25 @@ const ApiSetupRoute = ApiSetupRouteImport.update({
   path: '/api/setup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiNotificacoesRoute = ApiNotificacoesRouteImport.update({
+  id: '/api/notificacoes',
+  path: '/api/notificacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiLoginRoute = ApiLoginRouteImport.update({
   id: '/api/login',
   path: '/api/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGerarFormulariosColaboradoresRoute =
+  ApiGerarFormulariosColaboradoresRouteImport.update({
+    id: '/api/gerar-formularios-colaboradores',
+    path: '/api/gerar-formularios-colaboradores',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiEmailsContatoRoute = ApiEmailsContatoRouteImport.update({
+  id: '/api/emails-contato',
+  path: '/api/emails-contato',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiEmailConfigRoute = ApiEmailConfigRouteImport.update({
@@ -65,6 +89,12 @@ const ApiApplyMigrationsRoute = ApiApplyMigrationsRouteImport.update({
   path: '/api/apply-migrations',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedKanbanExamesRoute =
+  AuthenticatedKanbanExamesRouteImport.update({
+    id: '/kanban-exames',
+    path: '/kanban-exames',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedImportarRoute = AuthenticatedImportarRouteImport.update({
   id: '/importar',
   path: '/importar',
@@ -87,12 +117,34 @@ const AuthenticatedConfigEmailRoute =
     path: '/config-email',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAgendarExamesRoute =
+  AuthenticatedAgendarExamesRouteImport.update({
+    id: '/agendar-exames',
+    path: '/agendar-exames',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ApiExamesIndexRoute = ApiExamesIndexRouteImport.update({
+  id: '/api/exames/',
+  path: '/api/exames/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedColaboradoresIndexRoute =
   AuthenticatedColaboradoresIndexRouteImport.update({
     id: '/colaboradores/',
     path: '/colaboradores/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiExamesEnviarConfirmacaoRoute =
+  ApiExamesEnviarConfirmacaoRouteImport.update({
+    id: '/api/exames/enviar-confirmacao',
+    path: '/api/exames/enviar-confirmacao',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiExamesIdRoute = ApiExamesIdRouteImport.update({
+  id: '/api/exames/$id',
+  path: '/api/exames/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiEmailConfigTestRoute = ApiEmailConfigTestRouteImport.update({
   id: '/test',
   path: '/test',
@@ -113,109 +165,157 @@ const AuthenticatedColaboradoresIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/agendar-exames': typeof AuthenticatedAgendarExamesRoute
   '/config-email': typeof AuthenticatedConfigEmailRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/gerar-formularios': typeof AuthenticatedGerarFormulariosRoute
   '/importar': typeof AuthenticatedImportarRoute
+  '/kanban-exames': typeof AuthenticatedKanbanExamesRoute
   '/api/apply-migrations': typeof ApiApplyMigrationsRoute
   '/api/colaboradores': typeof ApiColaboradoresRouteWithChildren
   '/api/email-config': typeof ApiEmailConfigRouteWithChildren
+  '/api/emails-contato': typeof ApiEmailsContatoRoute
+  '/api/gerar-formularios-colaboradores': typeof ApiGerarFormulariosColaboradoresRoute
   '/api/login': typeof ApiLoginRoute
+  '/api/notificacoes': typeof ApiNotificacoesRoute
   '/api/setup': typeof ApiSetupRoute
   '/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
   '/api/colaboradores/$id': typeof ApiColaboradoresIdRoute
   '/api/email-config/test': typeof ApiEmailConfigTestRoute
+  '/api/exames/$id': typeof ApiExamesIdRoute
+  '/api/exames/enviar-confirmacao': typeof ApiExamesEnviarConfirmacaoRoute
   '/colaboradores/': typeof AuthenticatedColaboradoresIndexRoute
+  '/api/exames/': typeof ApiExamesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/agendar-exames': typeof AuthenticatedAgendarExamesRoute
   '/config-email': typeof AuthenticatedConfigEmailRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/gerar-formularios': typeof AuthenticatedGerarFormulariosRoute
   '/importar': typeof AuthenticatedImportarRoute
+  '/kanban-exames': typeof AuthenticatedKanbanExamesRoute
   '/api/apply-migrations': typeof ApiApplyMigrationsRoute
   '/api/colaboradores': typeof ApiColaboradoresRouteWithChildren
   '/api/email-config': typeof ApiEmailConfigRouteWithChildren
+  '/api/emails-contato': typeof ApiEmailsContatoRoute
+  '/api/gerar-formularios-colaboradores': typeof ApiGerarFormulariosColaboradoresRoute
   '/api/login': typeof ApiLoginRoute
+  '/api/notificacoes': typeof ApiNotificacoesRoute
   '/api/setup': typeof ApiSetupRoute
   '/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
   '/api/colaboradores/$id': typeof ApiColaboradoresIdRoute
   '/api/email-config/test': typeof ApiEmailConfigTestRoute
+  '/api/exames/$id': typeof ApiExamesIdRoute
+  '/api/exames/enviar-confirmacao': typeof ApiExamesEnviarConfirmacaoRoute
   '/colaboradores': typeof AuthenticatedColaboradoresIndexRoute
+  '/api/exames': typeof ApiExamesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/agendar-exames': typeof AuthenticatedAgendarExamesRoute
   '/_authenticated/config-email': typeof AuthenticatedConfigEmailRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/gerar-formularios': typeof AuthenticatedGerarFormulariosRoute
   '/_authenticated/importar': typeof AuthenticatedImportarRoute
+  '/_authenticated/kanban-exames': typeof AuthenticatedKanbanExamesRoute
   '/api/apply-migrations': typeof ApiApplyMigrationsRoute
   '/api/colaboradores': typeof ApiColaboradoresRouteWithChildren
   '/api/email-config': typeof ApiEmailConfigRouteWithChildren
+  '/api/emails-contato': typeof ApiEmailsContatoRoute
+  '/api/gerar-formularios-colaboradores': typeof ApiGerarFormulariosColaboradoresRoute
   '/api/login': typeof ApiLoginRoute
+  '/api/notificacoes': typeof ApiNotificacoesRoute
   '/api/setup': typeof ApiSetupRoute
   '/_authenticated/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
   '/api/colaboradores/$id': typeof ApiColaboradoresIdRoute
   '/api/email-config/test': typeof ApiEmailConfigTestRoute
+  '/api/exames/$id': typeof ApiExamesIdRoute
+  '/api/exames/enviar-confirmacao': typeof ApiExamesEnviarConfirmacaoRoute
   '/_authenticated/colaboradores/': typeof AuthenticatedColaboradoresIndexRoute
+  '/api/exames/': typeof ApiExamesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
+    | '/agendar-exames'
     | '/config-email'
     | '/dashboard'
     | '/gerar-formularios'
     | '/importar'
+    | '/kanban-exames'
     | '/api/apply-migrations'
     | '/api/colaboradores'
     | '/api/email-config'
+    | '/api/emails-contato'
+    | '/api/gerar-formularios-colaboradores'
     | '/api/login'
+    | '/api/notificacoes'
     | '/api/setup'
     | '/colaboradores/$id'
     | '/api/colaboradores/$id'
     | '/api/email-config/test'
+    | '/api/exames/$id'
+    | '/api/exames/enviar-confirmacao'
     | '/colaboradores/'
+    | '/api/exames/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/agendar-exames'
     | '/config-email'
     | '/dashboard'
     | '/gerar-formularios'
     | '/importar'
+    | '/kanban-exames'
     | '/api/apply-migrations'
     | '/api/colaboradores'
     | '/api/email-config'
+    | '/api/emails-contato'
+    | '/api/gerar-formularios-colaboradores'
     | '/api/login'
+    | '/api/notificacoes'
     | '/api/setup'
     | '/colaboradores/$id'
     | '/api/colaboradores/$id'
     | '/api/email-config/test'
+    | '/api/exames/$id'
+    | '/api/exames/enviar-confirmacao'
     | '/colaboradores'
+    | '/api/exames'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/agendar-exames'
     | '/_authenticated/config-email'
     | '/_authenticated/dashboard'
     | '/_authenticated/gerar-formularios'
     | '/_authenticated/importar'
+    | '/_authenticated/kanban-exames'
     | '/api/apply-migrations'
     | '/api/colaboradores'
     | '/api/email-config'
+    | '/api/emails-contato'
+    | '/api/gerar-formularios-colaboradores'
     | '/api/login'
+    | '/api/notificacoes'
     | '/api/setup'
     | '/_authenticated/colaboradores/$id'
     | '/api/colaboradores/$id'
     | '/api/email-config/test'
+    | '/api/exames/$id'
+    | '/api/exames/enviar-confirmacao'
     | '/_authenticated/colaboradores/'
+    | '/api/exames/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -225,8 +325,14 @@ export interface RootRouteChildren {
   ApiApplyMigrationsRoute: typeof ApiApplyMigrationsRoute
   ApiColaboradoresRoute: typeof ApiColaboradoresRouteWithChildren
   ApiEmailConfigRoute: typeof ApiEmailConfigRouteWithChildren
+  ApiEmailsContatoRoute: typeof ApiEmailsContatoRoute
+  ApiGerarFormulariosColaboradoresRoute: typeof ApiGerarFormulariosColaboradoresRoute
   ApiLoginRoute: typeof ApiLoginRoute
+  ApiNotificacoesRoute: typeof ApiNotificacoesRoute
   ApiSetupRoute: typeof ApiSetupRoute
+  ApiExamesIdRoute: typeof ApiExamesIdRoute
+  ApiExamesEnviarConfirmacaoRoute: typeof ApiExamesEnviarConfirmacaoRoute
+  ApiExamesIndexRoute: typeof ApiExamesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -259,11 +365,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSetupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/notificacoes': {
+      id: '/api/notificacoes'
+      path: '/api/notificacoes'
+      fullPath: '/api/notificacoes'
+      preLoaderRoute: typeof ApiNotificacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/login': {
       id: '/api/login'
       path: '/api/login'
       fullPath: '/api/login'
       preLoaderRoute: typeof ApiLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/gerar-formularios-colaboradores': {
+      id: '/api/gerar-formularios-colaboradores'
+      path: '/api/gerar-formularios-colaboradores'
+      fullPath: '/api/gerar-formularios-colaboradores'
+      preLoaderRoute: typeof ApiGerarFormulariosColaboradoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/emails-contato': {
+      id: '/api/emails-contato'
+      path: '/api/emails-contato'
+      fullPath: '/api/emails-contato'
+      preLoaderRoute: typeof ApiEmailsContatoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/email-config': {
@@ -286,6 +413,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/apply-migrations'
       preLoaderRoute: typeof ApiApplyMigrationsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/kanban-exames': {
+      id: '/_authenticated/kanban-exames'
+      path: '/kanban-exames'
+      fullPath: '/kanban-exames'
+      preLoaderRoute: typeof AuthenticatedKanbanExamesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/importar': {
       id: '/_authenticated/importar'
@@ -315,12 +449,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConfigEmailRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/agendar-exames': {
+      id: '/_authenticated/agendar-exames'
+      path: '/agendar-exames'
+      fullPath: '/agendar-exames'
+      preLoaderRoute: typeof AuthenticatedAgendarExamesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/exames/': {
+      id: '/api/exames/'
+      path: '/api/exames'
+      fullPath: '/api/exames/'
+      preLoaderRoute: typeof ApiExamesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/colaboradores/': {
       id: '/_authenticated/colaboradores/'
       path: '/colaboradores'
       fullPath: '/colaboradores/'
       preLoaderRoute: typeof AuthenticatedColaboradoresIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/exames/enviar-confirmacao': {
+      id: '/api/exames/enviar-confirmacao'
+      path: '/api/exames/enviar-confirmacao'
+      fullPath: '/api/exames/enviar-confirmacao'
+      preLoaderRoute: typeof ApiExamesEnviarConfirmacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/exames/$id': {
+      id: '/api/exames/$id'
+      path: '/api/exames/$id'
+      fullPath: '/api/exames/$id'
+      preLoaderRoute: typeof ApiExamesIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/email-config/test': {
       id: '/api/email-config/test'
@@ -347,19 +509,23 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAgendarExamesRoute: typeof AuthenticatedAgendarExamesRoute
   AuthenticatedConfigEmailRoute: typeof AuthenticatedConfigEmailRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedGerarFormulariosRoute: typeof AuthenticatedGerarFormulariosRoute
   AuthenticatedImportarRoute: typeof AuthenticatedImportarRoute
+  AuthenticatedKanbanExamesRoute: typeof AuthenticatedKanbanExamesRoute
   AuthenticatedColaboradoresIdRoute: typeof AuthenticatedColaboradoresIdRoute
   AuthenticatedColaboradoresIndexRoute: typeof AuthenticatedColaboradoresIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAgendarExamesRoute: AuthenticatedAgendarExamesRoute,
   AuthenticatedConfigEmailRoute: AuthenticatedConfigEmailRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedGerarFormulariosRoute: AuthenticatedGerarFormulariosRoute,
   AuthenticatedImportarRoute: AuthenticatedImportarRoute,
+  AuthenticatedKanbanExamesRoute: AuthenticatedKanbanExamesRoute,
   AuthenticatedColaboradoresIdRoute: AuthenticatedColaboradoresIdRoute,
   AuthenticatedColaboradoresIndexRoute: AuthenticatedColaboradoresIndexRoute,
 }
@@ -397,8 +563,14 @@ const rootRouteChildren: RootRouteChildren = {
   ApiApplyMigrationsRoute: ApiApplyMigrationsRoute,
   ApiColaboradoresRoute: ApiColaboradoresRouteWithChildren,
   ApiEmailConfigRoute: ApiEmailConfigRouteWithChildren,
+  ApiEmailsContatoRoute: ApiEmailsContatoRoute,
+  ApiGerarFormulariosColaboradoresRoute: ApiGerarFormulariosColaboradoresRoute,
   ApiLoginRoute: ApiLoginRoute,
+  ApiNotificacoesRoute: ApiNotificacoesRoute,
   ApiSetupRoute: ApiSetupRoute,
+  ApiExamesIdRoute: ApiExamesIdRoute,
+  ApiExamesEnviarConfirmacaoRoute: ApiExamesEnviarConfirmacaoRoute,
+  ApiExamesIndexRoute: ApiExamesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -135,10 +135,14 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           data_agendada: string | null;
+          data_1_etapa: string | null;
+          data_2_etapa: string | null;
           data_realizado: string | null;
           data_vencimento: string | null;
           id: string;
           justificativa: string | null;
+          justificativa_falta: string | null;
+          etapa_faltou: number | null;
           medico: string | null;
           motivo_pendencia: Database["public"]["Enums"]["pendencia_motivo"] | null;
           status: Database["public"]["Enums"]["exame_status"];
@@ -152,10 +156,14 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           data_agendada?: string | null;
+          data_1_etapa?: string | null;
+          data_2_etapa?: string | null;
           data_realizado?: string | null;
           data_vencimento?: string | null;
           id?: string;
           justificativa?: string | null;
+          justificativa_falta?: string | null;
+          etapa_faltou?: number | null;
           medico?: string | null;
           motivo_pendencia?: Database["public"]["Enums"]["pendencia_motivo"] | null;
           status?: Database["public"]["Enums"]["exame_status"];
@@ -169,10 +177,14 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           data_agendada?: string | null;
+          data_1_etapa?: string | null;
+          data_2_etapa?: string | null;
           data_realizado?: string | null;
           data_vencimento?: string | null;
           id?: string;
           justificativa?: string | null;
+          justificativa_falta?: string | null;
+          etapa_faltou?: number | null;
           medico?: string | null;
           motivo_pendencia?: Database["public"]["Enums"]["pendencia_motivo"] | null;
           status?: Database["public"]["Enums"]["exame_status"];
@@ -253,7 +265,7 @@ export type Database = {
         "aso_vencendo" | "aso_vencido" | "exame_pendente" | "falta_exame" | "reagendamento";
       app_role: "admin" | "gestor";
       aso_status: "em_dia" | "a_vencer" | "vencido" | "sem_exame";
-      exame_status: "agendado" | "compareceu" | "faltou" | "pendente" | "cancelado" | "realizado";
+      exame_status: "a_vencer" | "agendado" | "compareceu" | "faltou" | "pendente" | "cancelado" | "realizado" | "liberado";
       exame_tipo:
         | "admissional"
         | "periodico"
@@ -393,7 +405,7 @@ export const Constants = {
       ],
       app_role: ["admin", "gestor"],
       aso_status: ["em_dia", "a_vencer", "vencido", "sem_exame"],
-      exame_status: ["agendado", "compareceu", "faltou", "pendente", "cancelado", "realizado"],
+      exame_status: ["a_vencer", "agendado", "compareceu", "faltou", "pendente", "cancelado", "realizado", "liberado"],
       exame_tipo: [
         "admissional",
         "periodico",

@@ -1,15 +1,17 @@
 /* eslint-disable prettier/prettier */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import { Plus, Download, Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Download, Search, ArrowUpDown, ArrowUp, ArrowDown, FileText, Loader2, CheckSquare } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { authFetch } from "@/lib/custom-auth";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -44,6 +46,8 @@ function ColabList() {
   const [proxExame, setProxExame] = useState("__all__");
   const [sortKey, setSortKey] = useState<SortKey>("nome");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [gerando, setGerando] = useState(false);
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["colaboradores-list"],
@@ -70,6 +74,57 @@ function ColabList() {
     } else {
       setSortKey(key);
       setSortDir("asc");
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    const visible = sorted.slice(0, 500).map((r) => r.id);
+    const allSelected = visible.every((id) => selectedIds.has(id));
+    if (allSelected) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        for (const id of visible) next.delete(id);
+        return next;
+      });
+    } else {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        for (const id of visible) next.add(id);
+        return next;
+      });
+    }
+  };
+
+  const gerarFormularios = async () => {
+    if (selectedIds.size === 0) return;
+    setGerando(true);
+    try {
+      const res = await authFetch("/api/gerar-formularios-colaboradores", {
+        method: "POST",
+        body: JSON.stringify({ colaborador_ids: Array.from(selectedIds) }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Erro ao gerar formulários");
+      }
+      const blob = await res.blob();
+      saveAs(blob, `formularios_${new Date().toISOString().slice(0, 10)}.zip`);
+      toast.success(`${selectedIds.size} formulários gerados com sucesso!`);
+    } catch (err) {
+      toast.error("Erro ao gerar formulários", {
+        description: err instanceof Error ? err.message : "Erro desconhecido",
+      });
+    } finally {
+      setGerando(false);
     }
   };
 
@@ -151,6 +206,23 @@ function ColabList() {
         }
         actions={
           <>
+            {selectedIds.size > 0 && (
+              <span className="text-xs text-muted-foreground self-center">
+                {selectedIds.size} selecionado(s)
+              </span>
+            )}
+            <Button variant="outline" size="sm" onClick={gerarFormularios} disabled={selectedIds.size === 0 || gerando}>
+              {gerando ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <FileText className="h-4 w-4 mr-2" />
+              )}
+              {gerando ? "Gerando..." : "Gerar formulários"}
+            </Button>
+            <Button variant="outline" size="sm" onClick={toggleSelectAll}>
+              <CheckSquare className="h-4 w-4 mr-2" />
+              Selecionar
+            </Button>
             <Button variant="outline" size="sm" onClick={exportar}>
               <Download className="h-4 w-4 mr-2" />
               Exportar
@@ -222,6 +294,12 @@ function ColabList() {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
+                <th className="px-3 py-3 w-10">
+                  <Checkbox
+                    checked={sorted.slice(0, 500).length > 0 && sorted.slice(0, 500).every((r) => selectedIds.has(r.id))}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                </th>
                 {[
                   ["nome", "Nome"],
                   ["empresa", "Empresa"],
@@ -258,6 +336,12 @@ function ColabList() {
                 const b = statusBadge(r.status);
                 return (
                   <tr key={r.id} className="border-t border-border hover:bg-muted/30">
+                    <td className="px-3 py-2.5">
+                      <Checkbox
+                        checked={selectedIds.has(r.id)}
+                        onCheckedChange={() => toggleSelect(r.id)}
+                      />
+                    </td>
                     <td className="px-4 py-2.5">
                       <Link
                         to="/colaboradores/$id"

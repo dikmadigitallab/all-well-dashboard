@@ -16,6 +16,8 @@ import {
   Line,
   Legend,
 } from "recharts";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import type { Colaborador } from "@/lib/colaboradores";
 import { STATUS_LABEL } from "@/lib/colaboradores";
@@ -27,7 +29,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle2, AlertTriangle, XCircle, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar as CalendarUI } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { CheckCircle2, AlertTriangle, XCircle, Users, Calendar as CalendarIcon, RotateCcw } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -42,9 +52,11 @@ const STATUS_COLORS: Record<string, string> = {
 
 function Dashboard() {
   const [empresa, setEmpresa] = useState<string>("__all__");
-  const [unidade, setUnidade] = useState<string>("__all__");
+  const [area, setArea] = useState<string>("__all__");
   const [setor, setSetor] = useState<string>("__all__");
   const [periodo, setPeriodo] = useState<"semanal" | "mensal" | "trimestral" | "anual">("mensal");
+  const [dataInicio, setDataInicio] = useState<Date | undefined>(undefined);
+  const [dataFim, setDataFim] = useState<Date | undefined>(undefined);
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["colab-dash"],
@@ -53,10 +65,10 @@ function Dashboard() {
       if (!res.ok) throw new Error("Erro ao buscar dados");
       const json = await res.json();
       return (json.data as Colaborador[]).map(
-        ({ id, empresa, unidade, setor, funcao, status, proximo_exame, ativo }) => ({
+        ({ id, empresa, area, setor, funcao, status, proximo_exame, ativo }) => ({
           id,
           empresa,
-          unidade,
+          area,
           setor,
           funcao,
           status,
@@ -65,7 +77,7 @@ function Dashboard() {
         }),
       ) as Pick<
         Colaborador,
-        "id" | "empresa" | "unidade" | "setor" | "funcao" | "status" | "proximo_exame" | "ativo"
+        "id" | "empresa" | "area" | "setor" | "funcao" | "status" | "proximo_exame" | "ativo"
       >[];
     },
   });
@@ -74,8 +86,8 @@ function Dashboard() {
     () => Array.from(new Set(rows.map((r) => r.empresa).filter(Boolean) as string[])).sort(),
     [rows],
   );
-  const unidades = useMemo(
-    () => Array.from(new Set(rows.map((r) => r.unidade).filter(Boolean) as string[])).sort(),
+  const areas = useMemo(
+    () => Array.from(new Set(rows.map((r) => r.area).filter(Boolean) as string[])).sort(),
     [rows],
   );
   const setores = useMemo(
@@ -88,10 +100,12 @@ function Dashboard() {
       rows.filter(
         (r) =>
           (empresa === "__all__" || r.empresa === empresa) &&
-          (unidade === "__all__" || r.unidade === unidade) &&
-          (setor === "__all__" || r.setor === setor),
+          (area === "__all__" || r.area === area) &&
+          (setor === "__all__" || r.setor === setor) &&
+          (dataInicio ? (r.proximo_exame ? new Date(r.proximo_exame) >= dataInicio : false) : true) &&
+          (dataFim ? (r.proximo_exame ? new Date(r.proximo_exame) <= dataFim : false) : true),
       ),
-    [rows, empresa, unidade, setor],
+    [rows, empresa, area, setor, dataInicio, dataFim],
   );
 
   const total = filtered.length;
@@ -110,13 +124,13 @@ function Dashboard() {
     { name: "Sem exame", value: counts.sem_exame, key: "sem_exame" },
   ];
 
-  const porUnidade = useMemo(() => {
+  const porArea = useMemo(() => {
     const map = new Map<
       string,
       { em_dia: number; a_vencer: number; vencido: number; sem_exame: number }
     >();
     for (const r of filtered) {
-      const k = r.unidade || "—";
+      const k = r.area || "—";
       const cur = map.get(k) ?? { em_dia: 0, a_vencer: 0, vencido: 0, sem_exame: 0 };
       cur[(r.status ?? "sem_exame") as keyof typeof cur]++;
       map.set(k, cur);
@@ -169,6 +183,34 @@ function Dashboard() {
         description={isLoading ? "Carregando dados..." : `${total} colaboradores no filtro atual`}
         actions={
           <div className="flex flex-wrap gap-2">
+            {/* Filtro de período */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={cn("w-[160px] justify-start", !dataInicio && "text-muted-foreground")}>
+                  <CalendarIcon className="h-4 w-4 mr-2" />
+                  {dataInicio ? format(dataInicio, "dd/MM/yy") : "Data início"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarUI mode="single" selected={dataInicio} onSelect={setDataInicio} locale={ptBR} />
+              </PopoverContent>
+            </Popover>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={cn("w-[160px] justify-start", !dataFim && "text-muted-foreground")}>
+                  <CalendarIcon className="h-4 w-4 mr-2" />
+                  {dataFim ? format(dataFim, "dd/MM/yy") : "Data fim"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarUI mode="single" selected={dataFim} onSelect={setDataFim} locale={ptBR} />
+              </PopoverContent>
+            </Popover>
+            {(dataInicio || dataFim || empresa !== "__all__" || area !== "__all__" || setor !== "__all__") && (
+              <Button variant="ghost" size="sm" onClick={() => { setDataInicio(undefined); setDataFim(undefined); setEmpresa("__all__"); setArea("__all__"); setSetor("__all__"); }}>
+                <RotateCcw className="h-3 w-3 mr-1" /> Limpar
+              </Button>
+            )}
             <FilterSelect
               value={empresa}
               onChange={setEmpresa}
@@ -176,10 +218,10 @@ function Dashboard() {
               options={empresas}
             />
             <FilterSelect
-              value={unidade}
-              onChange={setUnidade}
-              placeholder="Unidade"
-              options={unidades}
+              value={area}
+              onChange={setArea}
+              placeholder="Área"
+              options={areas}
             />
             <FilterSelect value={setor} onChange={setSetor} placeholder="Setor" options={setores} />
             <Select value={periodo} onValueChange={(v) => setPeriodo(v as typeof periodo)}>
@@ -248,10 +290,10 @@ function Dashboard() {
         </div>
 
         <div className="lg:col-span-2 rounded-lg border border-border bg-card p-5">
-          <div className="text-sm font-medium mb-4">Colaboradores por unidade (top 10)</div>
+          <div className="text-sm font-medium mb-4">Colaboradores por área (top 10)</div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={porUnidade}>
+              <BarChart data={porArea}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis
                   dataKey="name"
