@@ -11,7 +11,6 @@
 - `AppShell` exibe `fullName` do usuário
 - Supabase Auth files (`auth-attacher.ts`, `auth-middleware.ts`) mantidos como dead code
 
-<<<<<<< HEAD
 ## Migrations Aplicadas (17/07/2026)
 - Pooler Supabase (`aws-1-sa-east-1.pooler.supabase.com:5432`) está FUNCIONANDO
 - Todas as 4 migrations SQL aplicadas com sucesso via `prisma db push`
@@ -36,13 +35,6 @@
 - Criar tabela `users` (ou usar `user_roles` já existente com uma `users` table)
 - Limpar arquivos legados do Supabase (`integrations/supabase/`)
 - Remover imports de `@/integrations/supabase/types` e usar tipos do Prisma
-=======
-## Pendente
-- Conexão direta ao banco PostgreSQL não funciona (pooler rejeita senha)
-- 4 migrations SQL não aplicadas (schema de colaboradores, exames, alertas, etc.)
-- Usuário `maria_eduarda` criado via Supabase Auth admin API (pode ser removido depois)
-- Quando banco estiver acessível: migrar auth para tabela própria e aplicar migrations
->>>>>>> abdb50bf565f8f328015be289fdd15bd5a3223ba
 
 ## Credenciais de acesso
 - Usuário: maria_eduarda
