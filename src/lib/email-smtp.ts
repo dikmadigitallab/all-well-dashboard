@@ -20,7 +20,7 @@ export interface SendEmailResult {
 /**
  * Cria um transporter nodemailer a partir da config SMTP.
  */
-function createTransporter(config: SmtpConfig) {
+export function createTransporter(config: SmtpConfig) {
   return nodemailer.createTransport({
     host: config.host,
     port: config.port,
@@ -133,12 +133,19 @@ export async function sendEmail(
   try {
     const transporter = createTransporter(smtpConfig);
 
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: `"All-Well ASO" <${smtpConfig.user}>`,
       to,
       subject,
       text,
       html,
+    });
+
+    console.log("[email-smtp] sendMail info:", {
+      messageId: info.messageId,
+      accepted: info.accepted,
+      rejected: info.rejected,
+      response: info.response?.substring(0, 200),
     });
 
     return { success: true };

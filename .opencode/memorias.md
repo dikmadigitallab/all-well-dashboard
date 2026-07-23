@@ -71,11 +71,47 @@
 - `prisma db push` executado com sucesso
 - Build passou sem erros
 
+## Sistema de Notificações (23/07/2026)
+- Criado endpoint `GET /api/notificacoes` em `src/routes/api/notificacoes.ts`
+  - Protegido com `requireAuth` (apenas usuários autenticados)
+  - Retorna lista de colaboradores ativos com `proximo_exame` nos próximos 60 dias (a_vencer)
+  - Retorna lista de colaboradores ativos com `proximo_exame` vencido (vencidos)
+  - Dados retornados: id, nome, empresa, proximo_exame, status, dias_para_vencer
+  - Ordenação: a_vencer por dias_para_vencer (menor primeiro), vencidos por data (mais antigo primeiro)
+  - Contagem total e por categoria
+- Criado componente `NotificationBell` em `src/components/notification-bell.tsx`
+  - Ícone de sino (`Bell`) da lucide-react
+  - Badge vermelho com contagem total (99+ se >99)
+  - Dropdown via `Popover` do Radix UI com duas seções: "Vencendo em 60 dias" e "Vencidos"
+  - Cada item da lista é um link para `/colaboradores/$id`
+  - Exibe dias restantes para os "a vencer" e rótulo "Vencido" para os vencidos
+  - Limite de 20 itens por seção com link "Ver todos" quando exceder
+  - Re-busca automática a cada 60 segundos
+  - ScrollArea para listas longas
+  - Estado vazio e de carregamento tratados
+- Integrado `NotificationBell` no `AppShell` (sidebar header)
+  - Exibido apenas para admin (`isAdmin`)
+  - Posicionado ao lado do logo/branding
+
+## Agendamento de Exames (23/07/2026)
+- Criado model `EmailContato` no schema (tabela `email_contatos`) para salvar emails de notificação
+- Criado endpoint `GET/POST /api/exames` — listar e criar agendamentos
+- Criado endpoint `GET/POST /api/emails-contato` — listar e adicionar emails de contato
+- Criado endpoint `POST /api/exames/enviar-confirmacao` — enviar email de confirmação via SMTP
+- Criada página `/agendar-exames` com:
+  - Calendário para seleção de data
+  - Busca de colaborador com autocomplete (Command/cmdk)
+  - Seleção de tipo de exame (periódico, admissional, etc.)
+  - Campo de email combinado: selecionar da lista ou adicionar novo (salvo automaticamente)
+  - Botões "Agendar" e "Agendar e enviar confirmação"
+  - Lista de exames agendados agrupados por data
+- Adicionado link "Agendar exames" na sidebar (adminOnly)
+- **Bug corrigido**: rota `/api/exames` não estava sendo registrada por conflito entre `exames.ts` (arquivo) e `exames/` (diretório). Solução: movido conteúdo de `exames.ts` para `exames/index.ts` e removido o arquivo plano
+
 ## Próximos Passos
 - Limpar arquivos legados do Supabase (`integrations/supabase/`)
 - Migrar tipos de `@/integrations/supabase/types` para tipos do Prisma
 - Remover variáveis AUTH_USERNAME/AUTH_PASSWORD do .env (não usadas mais)
-- Próxima interação: configurar rotina automática de verificação de emails
 
 ## Credenciais de acesso
 - Usuário: maria_eduarda

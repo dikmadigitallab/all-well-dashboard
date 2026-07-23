@@ -42,4 +42,4 @@ export function getPrisma(): PrismaClient {
 }
 
 // Singleton module-level (recriado em cada hot-reload)
-export const prisma = createPrisma();
+export const prisma = getPrisma();
