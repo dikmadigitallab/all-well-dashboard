@@ -11,8 +11,13 @@ export const Route = createFileRoute("/api/exames/")({
         try {
           await requireAuth(request);
 
+          const url = new URL(request.url);
+          const statusFilter = url.searchParams.get("status");
+
+          const where = statusFilter ? { status: statusFilter } : {};
+
           const exames = await prisma.exame.findMany({
-            where: { status: "agendado" },
+            where,
             orderBy: { data_agendada: "asc" },
             include: {
               colaborador: {

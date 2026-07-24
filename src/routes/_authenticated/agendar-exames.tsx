@@ -11,11 +11,15 @@ import {
   ChevronDown,
   X,
   Check,
+  Trash2,
+  Pencil,
+  RotateCcw,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { authFetch } from "@/lib/custom-auth";
 import { formatDate } from "@/lib/colaboradores";
+import { registrarHistorico } from "@/lib/historico";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +47,7 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 export const Route = createFileRoute("/_authenticated/agendar-exames")({
@@ -67,6 +72,8 @@ interface ExameAgendado {
   data_2_etapa: string | null;
   status: string;
   clinica: string | null;
+  justificativa_falta: string | null;
+  etapa_faltou: number | null;
   created_at: string;
   colaborador: {
     id: string;
@@ -96,6 +103,7 @@ function AgendarExames() {
   const [colabOpen, setColabOpen] = useState(false);
   const [tipo, setTipo] = useState("periodico");
   const [clinica, setClinica] = useState("");
+  const [editingExameId, setEditingExameId] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [emailNovo, setEmailNovo] = useState("");
   const [emailOpen, setEmailOpen] = useState(false);
@@ -105,7 +113,7 @@ function AgendarExames() {
   const { data: exames = [], isLoading: loadingExames } = useQuery<ExameAgendado[]>({
     queryKey: ["exames-agendados"],
     queryFn: async () => {
-      const res = await authFetch("/api/exames");
+      const res = await authFetch("/api/exames?status=agendado");
       if (!res.ok) throw new Error("Erro ao buscar exames");
       const json = await res.json();
       return json.data as ExameAgendado[];
@@ -150,15 +158,61 @@ function AgendarExames() {
       }
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["exames-agendados"] });
+      queryClient.invalidateQueries({ queryKey: ["exames-kanban"] });
+      queryClient.invalidateQueries({ queryKey: ["colaboradores-kanban"] });
+      // Registra histórico do agendamento
+      const exame = result?.data;
+      if (exame) {
+        registrarHistorico({
+          colaboradorId: exame.colaborador_id,
+          exameId: exame.id,
+          evento: "agendado",
+          descricao: `Exame agendado para ${format(new Date(exame.data_agendada + "T12:00:00"), "dd/MM/yyyy")}`,
+          detalhes: { tipo: exame.tipo, data_agendada: exame.data_agendada },
+        });
+      }
       // Limpa form
       setDate(undefined);
+      setDataSegundaEtapa(undefined);
       setColaboradorId("");
       setColaboradorNome("");
       setColabSearch("");
       setEmail("");
       toast.success("Exame agendado com sucesso!");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message);
+    },
+  });
+
+  // Mutation para atualizar exame existente (reagendamento)
+  const updateExame = useMutation({
+    mutationFn: async ({
+      exameId,
+      payload,
+    }: {
+      exameId: string;
+      payload: Record<string, unknown>;
+    }) => {
+      const res = await authFetch(`/api/exames/${exameId}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Erro ao reagendar");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["exames-agendados"] });
+      queryClient.invalidateQueries({ queryKey: ["exames-kanban"] });
+      queryClient.invalidateQueries({ queryKey: ["colaboradores-kanban"] });
+      // Limpa form
+      limparForm();
+      toast.success("Exame reagendado com sucesso!");
     },
     onError: (err: Error) => {
       toast.error(err.message);
@@ -202,6 +256,45 @@ function AgendarExames() {
     },
   });
 
+  const cancelarExame = useMutation({
+    mutationFn: async (exameId: string) => {
+      const res = await authFetch(`/api/exames/${exameId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          status: "cancelado",
+          data_1_etapa: null,
+          data_2_etapa: null,
+          justificativa_falta: null,
+          etapa_faltou: null,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Erro ao cancelar exame");
+      }
+      return res.json();
+    },
+    onSuccess: (_data, exameId) => {
+      queryClient.invalidateQueries({ queryKey: ["exames-agendados"] });
+      queryClient.invalidateQueries({ queryKey: ["exames-kanban"] });
+      queryClient.invalidateQueries({ queryKey: ["colaboradores-kanban"] });
+      toast.success("Exame desmarcado com sucesso!");
+      // Busca o exame para saber o colaborador_id
+      const exame = exames.find((e) => e.id === exameId);
+      if (exame) {
+        registrarHistorico({
+          colaboradorId: exame.colaborador_id,
+          exameId: exame.id,
+          evento: "cancelado",
+          descricao: "Exame desmarcado/cancelado",
+        });
+      }
+    },
+    onError: (err: Error) => {
+      toast.error(err.message);
+    },
+  });
+
   // Colaborador search filter
   const colabFiltrados = useMemo(
     () =>
@@ -221,16 +314,20 @@ function AgendarExames() {
     [colaboradores, colaboradorId],
   );
 
-  // Agrupa exames por data
-  const examesPorData = useMemo(() => {
-    const map = new Map<string, ExameAgendado[]>();
+  // Agrupa exames por colaborador (para exibição em cards)
+  const examesPorColaborador = useMemo(() => {
+    const map = new Map<string, { colaborador: ExameAgendado["colaborador"]; exames: ExameAgendado[] }>();
     for (const ex of exames) {
-      const key = ex.data_agendada ? ex.data_agendada.slice(0, 10) : "sem_data";
-      const lista = map.get(key) ?? [];
-      lista.push(ex);
-      map.set(key, lista);
+      const entry = map.get(ex.colaborador_id) ?? {
+        colaborador: ex.colaborador,
+        exames: [],
+      };
+      entry.exames.push(ex);
+      map.set(ex.colaborador_id, entry);
     }
-    return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
+    return Array.from(map.entries())
+      .map(([_, entry]) => entry)
+      .sort((a, b) => a.colaborador.nome.localeCompare(b.colaborador.nome));
   }, [exames]);
 
   // Datas que têm exames
@@ -251,52 +348,69 @@ function AgendarExames() {
       return;
     }
 
-    const result = await criarExame.mutateAsync({
-      colaborador_id: colaboradorId,
-      data_agendada: format(date, "yyyy-MM-dd"),
-      data_1_etapa: format(date, "yyyy-MM-dd"),
-      data_2_etapa: dataSegundaEtapa ? format(dataSegundaEtapa, "yyyy-MM-dd") : undefined,
-      tipo,
-      clinica: clinica || undefined,
-    });
+    const data1 = format(date, "yyyy-MM-dd");
+    const data2 = dataSegundaEtapa ? format(dataSegundaEtapa, "yyyy-MM-dd") : null;
 
-    if (comEnvio) {
-      console.log("[handleAgendar] comEnvio=true, result?.data?.id:", result?.data?.id, "email:", email, "emailNovo:", emailNovo);
-
-      if (!result?.data?.id) {
-        toast.error("Exame criado mas sem ID para enviar confirmação");
-        return;
-      }
-
-      let emailParaEnviar = email;
-
-      // Se tem email novo não salvo, salva primeiro
-      if (emailNovo && !emailsContato.find((e) => e.email === emailNovo.toLowerCase())) {
-        const saved = await salvarEmail.mutateAsync({ email: emailNovo });
-        emailParaEnviar = saved.data.email;
-        setEmailNovo("");
-      }
-
-      if (!emailParaEnviar) {
-        toast.error("Selecione ou digite um email para enviar a confirmação");
-        return;
-      }
-
-      console.log("[handleAgendar] chamando enviarConfirmacao com:", { exame_id: result.data.id, email: emailParaEnviar });
-
-      enviarConfirmacao.mutate(
-        { exame_id: result.data.id, email: emailParaEnviar },
-        {
-          onSuccess: (data) => {
-            console.log("[enviarConfirmacao] onSuccess:", data);
-            toast.success("Confirmação enviada com sucesso!");
-          },
-          onError: (err) => {
-            console.error("[enviarConfirmacao] onError:", err);
-            toast.error(err.message);
-          },
+    if (editingExameId) {
+      // ── Reagendamento: atualiza exame existente ──
+      await updateExame.mutateAsync({
+        exameId: editingExameId,
+        payload: {
+          data_agendada: data1,
+          data_1_etapa: data1,
+          data_2_etapa: data2,
+          clinica: clinica || null,
         },
-      );
+      });
+    } else {
+      // ── Novo agendamento ──
+      const result = await criarExame.mutateAsync({
+        colaborador_id: colaboradorId,
+        data_agendada: data1,
+        data_1_etapa: data1,
+        data_2_etapa: data2 ?? undefined,
+        tipo,
+        clinica: clinica || undefined,
+      });
+
+      if (comEnvio) {
+        console.log("[handleAgendar] comEnvio=true, result?.data?.id:", result?.data?.id, "email:", email, "emailNovo:", emailNovo);
+
+        if (!result?.data?.id) {
+          toast.error("Exame criado mas sem ID para enviar confirmação");
+          return;
+        }
+
+        let emailParaEnviar = email;
+
+        // Se tem email novo não salvo, salva primeiro
+        if (emailNovo && !emailsContato.find((e) => e.email === emailNovo.toLowerCase())) {
+          const saved = await salvarEmail.mutateAsync({ email: emailNovo });
+          emailParaEnviar = saved.data.email;
+          setEmailNovo("");
+        }
+
+        if (!emailParaEnviar) {
+          toast.error("Selecione ou digite um email para enviar a confirmação");
+          return;
+        }
+
+        console.log("[handleAgendar] chamando enviarConfirmacao com:", { exame_id: result.data.id, email: emailParaEnviar });
+
+        enviarConfirmacao.mutate(
+          { exame_id: result.data.id, email: emailParaEnviar },
+          {
+            onSuccess: (data) => {
+              console.log("[enviarConfirmacao] onSuccess:", data);
+              toast.success("Confirmação enviada com sucesso!");
+            },
+            onError: (err) => {
+              console.error("[enviarConfirmacao] onError:", err);
+              toast.error(err.message);
+            },
+          },
+        );
+      }
     }
   };
 
@@ -316,7 +430,31 @@ function AgendarExames() {
     toast.success("Email salvo na lista!");
   };
 
-  const agendando = criarExame.isPending;
+  const agendando = criarExame.isPending || updateExame.isPending;
+
+  const limparForm = () => {
+    setDate(undefined);
+    setDataSegundaEtapa(undefined);
+    setColaboradorId("");
+    setColaboradorNome("");
+    setColabSearch("");
+    setEditingExameId(null);
+    setEmail("");
+    setTipo("periodico");
+    setClinica("");
+  };
+
+  const handleEditExame = (ex: ExameAgendado) => {
+    setEditingExameId(ex.id);
+    setDate(ex.data_agendada ? new Date(ex.data_agendada + "T12:00:00") : undefined);
+    setDataSegundaEtapa(ex.data_2_etapa ? new Date(ex.data_2_etapa + "T12:00:00") : undefined);
+    setColaboradorId(ex.colaborador_id);
+    setColaboradorNome(ex.colaborador.nome);
+    setTipo(ex.tipo);
+    setClinica(ex.clinica ?? "");
+    setEmail("");
+    setColabSearch(ex.colaborador.nome);
+  };
 
   return (
     <PageContainer>
@@ -564,6 +702,17 @@ function AgendarExames() {
 
           {/* Ações */}
           <div className="space-y-2 pt-2">
+            {editingExameId && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-xs text-muted-foreground"
+                onClick={limparForm}
+                disabled={agendando}
+              >
+                <X className="h-3 w-3 mr-1" /> Cancelar edição
+              </Button>
+            )}
             <Button
               className="w-full"
               onClick={() => handleAgendar(false)}
@@ -571,7 +720,11 @@ function AgendarExames() {
             >
               {agendando ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Agendando...
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> {editingExameId ? "Reagendando..." : "Agendando..."}
+                </>
+              ) : editingExameId ? (
+                <>
+                  <RotateCcw className="h-4 w-4 mr-2" /> Reagendar
                 </>
               ) : (
                 <>
@@ -580,75 +733,131 @@ function AgendarExames() {
               )}
             </Button>
 
-            <Button
-              variant="secondary"
-              className="w-full"
-              onClick={() => handleAgendar(true)}
-              disabled={agendando || !date || !colaboradorId}
-            >
-              <Send className="h-4 w-4 mr-2" /> Agendar e enviar confirmação
-            </Button>
+            {!editingExameId && (
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => handleAgendar(true)}
+                disabled={agendando || !date || !colaboradorId}
+              >
+                <Send className="h-4 w-4 mr-2" /> Agendar e enviar confirmação
+              </Button>
+            )}
           </div>
         </div>
 
-        {/* ── Lista de agendamentos ── */}
-        <div className="lg:col-span-2">
-          <div className="rounded-lg border border-border bg-card">
-            <div className="px-4 py-3 border-b border-border text-sm font-medium">
-              Exames agendados
-              <span className="text-muted-foreground font-normal ml-1">
-                ({exames.length})
-              </span>
-            </div>
+        {/* ── Cards de colaboradores com agendamentos ── */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="text-sm font-medium flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Agendamentos por colaborador
+            <span className="text-muted-foreground font-normal ml-1">
+              ({exames.length} exames)
+            </span>
+          </div>
 
-            {loadingExames ? (
-              <div className="px-4 py-12 text-center text-sm text-muted-foreground">
-                Carregando...
-              </div>
-            ) : exames.length === 0 ? (
-              <div className="px-4 py-12 text-center text-sm text-muted-foreground">
-                Nenhum exame agendado ainda.
-              </div>
-            ) : (
-              <div className="divide-y divide-border">
-                {examesPorData.map(([dataStr, lista]) => (
-                  <div key={dataStr}>
-                    <div className="px-4 py-2 bg-muted/30 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                      {dataStr === "sem_data"
-                        ? "Sem data definida"
-                        : format(new Date(dataStr + "T12:00:00"), "EEEE, dd 'de' MMMM 'de' yyyy", {
-                            locale: ptBR,
-                          })}
+          {loadingExames ? (
+            <div className="px-4 py-12 text-center text-sm text-muted-foreground rounded-lg border border-border bg-card">
+              <Loader2 className="h-4 w-4 mx-auto mb-2 animate-spin" />
+              Carregando...
+            </div>
+          ) : exames.length === 0 ? (
+            <div className="px-4 py-12 text-center text-sm text-muted-foreground rounded-lg border border-border bg-card">
+              Nenhum exame agendado ainda.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3">
+              {examesPorColaborador.map(({ colaborador, exames: exams }) => (
+                <Card key={colaborador.id} className="shadow-sm">
+                  <CardContent className="p-4 space-y-3">
+                    {/* Cabeçalho do colaborador */}
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="text-sm font-semibold">{colaborador.nome}</div>
+                        {colaborador.empresa && (
+                          <div className="text-xs text-muted-foreground">{colaborador.empresa}</div>
+                        )}
+                      </div>
+                      <Badge variant="secondary" className="text-[10px] h-4">
+                        {exams.length} {exams.length === 1 ? "exame" : "exames"}
+                      </Badge>
                     </div>
-                    {lista.map((ex) => (
-                      <div
-                        key={ex.id}
-                        className="flex items-center justify-between px-4 py-3 hover:bg-muted/20 transition-colors"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <div className="text-sm font-medium truncate">
-                            {ex.colaborador.nome}
+
+                    {/* Lista de exames do colaborador */}
+                    <div className="space-y-2">
+                      {exams.map((ex) => (
+                        <div
+                          key={ex.id}
+                          className="flex items-center justify-between rounded-md border border-border bg-muted/20 p-2.5"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="text-xs font-medium">
+                              {ex.tipo.replace(/_/g, " ")}
+                              {ex.clinica && <span className="text-muted-foreground"> · {ex.clinica}</span>}
+                            </div>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {ex.data_1_etapa && (
+                                <Badge variant="outline" className="text-[10px] h-4 px-1">
+                                  1ª: {format(new Date(ex.data_1_etapa.slice(0, 10) + "T12:00:00"), "dd/MM")}
+                                </Badge>
+                              )}
+                              {ex.data_2_etapa && (
+                                <Badge variant="outline" className="text-[10px] h-4 px-1">
+                                  2ª: {format(new Date(ex.data_2_etapa.slice(0, 10) + "T12:00:00"), "dd/MM")}
+                                </Badge>
+                              )}
+                              {!ex.data_1_etapa && !ex.data_2_etapa && (
+                                <Badge variant="outline" className="text-[10px] h-4 px-1">
+                                  {ex.data_agendada
+                                    ? format(new Date(ex.data_agendada.slice(0, 10) + "T12:00:00"), "dd/MM")
+                                    : "—"}
+                                </Badge>
+                              )}
+                              {ex.justificativa_falta && (
+                                <Badge variant="destructive" className="text-[10px] h-4 px-1">
+                                  Faltou {ex.etapa_faltou}ª etapa
+                                </Badge>
+                              )}
+                            </div>
+                            {ex.justificativa_falta && (
+                              <div className="text-[10px] text-destructive mt-0.5 italic">
+                                {ex.justificativa_falta}
+                              </div>
+                            )}
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {ex.colaborador.empresa ?? "—"} · {ex.tipo.replace(/_/g, " ")}
-                            {ex.clinica && ` · ${ex.clinica}`}
+                          <div className="flex items-center gap-1 shrink-0 ml-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
+                              onClick={() => handleEditExame(ex)}
+                              title="Reagendar"
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                              disabled={cancelarExame.isPending}
+                              onClick={() => {
+                                if (window.confirm(`Desmarcar exame de ${colaborador.nome}?`)) {
+                                  cancelarExame.mutate(ex.id);
+                                }
+                              }}
+                              title="Desmarcar"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
                           </div>
                         </div>
-                        <Badge
-                          variant="outline"
-                          className="shrink-0 ml-2 text-xs"
-                        >
-                          {ex.data_agendada
-                            ? format(new Date(ex.data_agendada.slice(0, 10) + "T12:00:00"), "dd/MM")
-                            : "—"}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </PageContainer>

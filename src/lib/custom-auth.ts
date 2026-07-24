@@ -93,5 +93,10 @@ export async function authFetch(
   options?: RequestInit & { headers?: Record<string, string> },
 ): Promise<Response> {
   const headers = authHeaders(options?.headers);
+  // Quando o body é FormData, não defina Content-Type manualmente —
+  // o navegador precisa definir automaticamente com o boundary correto
+  if (options?.body instanceof FormData) {
+    delete headers["Content-Type"];
+  }
   return fetch(url, { ...options, headers });
 }

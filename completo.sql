@@ -127,7 +127,7 @@ BEGIN
     d := (NEW.proximo_exame - CURRENT_DATE);
     NEW.dias_para_vencer := d;
     IF d < 0 THEN NEW.status := 'vencido';
-    ELSIF d <= 30 THEN NEW.status := 'a_vencer';
+    ELSIF d <= 60 THEN NEW.status := 'a_vencer';
     ELSE NEW.status := 'em_dia';
     END IF;
   END IF;
@@ -205,7 +205,7 @@ BEGIN
     d := (NEW.proximo_exame - CURRENT_DATE);
     NEW.dias_para_vencer := d;
     IF d < 0 THEN NEW.status := 'vencido';
-    ELSIF d <= 30 THEN NEW.status := 'a_vencer';
+    ELSIF d <= 60 THEN NEW.status := 'a_vencer';
     ELSE NEW.status := 'em_dia';
     END IF;
   END IF;

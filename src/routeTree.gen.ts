@@ -28,10 +28,13 @@ import { Route as AuthenticatedConfigEmailRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAgendarExamesRouteImport } from './routes/_authenticated/agendar-exames'
 import { Route as ApiExamesIndexRouteImport } from './routes/api/exames/index'
 import { Route as AuthenticatedColaboradoresIndexRouteImport } from './routes/_authenticated/colaboradores/index'
+import { Route as ApiExamesHistoricoRouteImport } from './routes/api/exames/historico'
 import { Route as ApiExamesEnviarConfirmacaoRouteImport } from './routes/api/exames/enviar-confirmacao'
 import { Route as ApiExamesIdRouteImport } from './routes/api/exames/$id'
 import { Route as ApiEmailConfigTestRouteImport } from './routes/api/email-config.test'
 import { Route as ApiColaboradoresIdRouteImport } from './routes/api/colaboradores.$id'
+import { Route as ApiAsosUploadRouteImport } from './routes/api/asos/upload'
+import { Route as ApiAsosListarRouteImport } from './routes/api/asos/listar'
 import { Route as AuthenticatedColaboradoresIdRouteImport } from './routes/_authenticated/colaboradores/$id'
 
 const AuthRoute = AuthRouteImport.update({
@@ -134,6 +137,11 @@ const AuthenticatedColaboradoresIndexRoute =
     path: '/colaboradores/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiExamesHistoricoRoute = ApiExamesHistoricoRouteImport.update({
+  id: '/api/exames/historico',
+  path: '/api/exames/historico',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiExamesEnviarConfirmacaoRoute =
   ApiExamesEnviarConfirmacaoRouteImport.update({
     id: '/api/exames/enviar-confirmacao',
@@ -154,6 +162,16 @@ const ApiColaboradoresIdRoute = ApiColaboradoresIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => ApiColaboradoresRoute,
+} as any)
+const ApiAsosUploadRoute = ApiAsosUploadRouteImport.update({
+  id: '/api/asos/upload',
+  path: '/api/asos/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAsosListarRoute = ApiAsosListarRouteImport.update({
+  id: '/api/asos/listar',
+  path: '/api/asos/listar',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedColaboradoresIdRoute =
   AuthenticatedColaboradoresIdRouteImport.update({
@@ -180,10 +198,13 @@ export interface FileRoutesByFullPath {
   '/api/notificacoes': typeof ApiNotificacoesRoute
   '/api/setup': typeof ApiSetupRoute
   '/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
+  '/api/asos/listar': typeof ApiAsosListarRoute
+  '/api/asos/upload': typeof ApiAsosUploadRoute
   '/api/colaboradores/$id': typeof ApiColaboradoresIdRoute
   '/api/email-config/test': typeof ApiEmailConfigTestRoute
   '/api/exames/$id': typeof ApiExamesIdRoute
   '/api/exames/enviar-confirmacao': typeof ApiExamesEnviarConfirmacaoRoute
+  '/api/exames/historico': typeof ApiExamesHistoricoRoute
   '/colaboradores/': typeof AuthenticatedColaboradoresIndexRoute
   '/api/exames/': typeof ApiExamesIndexRoute
 }
@@ -205,10 +226,13 @@ export interface FileRoutesByTo {
   '/api/notificacoes': typeof ApiNotificacoesRoute
   '/api/setup': typeof ApiSetupRoute
   '/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
+  '/api/asos/listar': typeof ApiAsosListarRoute
+  '/api/asos/upload': typeof ApiAsosUploadRoute
   '/api/colaboradores/$id': typeof ApiColaboradoresIdRoute
   '/api/email-config/test': typeof ApiEmailConfigTestRoute
   '/api/exames/$id': typeof ApiExamesIdRoute
   '/api/exames/enviar-confirmacao': typeof ApiExamesEnviarConfirmacaoRoute
+  '/api/exames/historico': typeof ApiExamesHistoricoRoute
   '/colaboradores': typeof AuthenticatedColaboradoresIndexRoute
   '/api/exames': typeof ApiExamesIndexRoute
 }
@@ -232,10 +256,13 @@ export interface FileRoutesById {
   '/api/notificacoes': typeof ApiNotificacoesRoute
   '/api/setup': typeof ApiSetupRoute
   '/_authenticated/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
+  '/api/asos/listar': typeof ApiAsosListarRoute
+  '/api/asos/upload': typeof ApiAsosUploadRoute
   '/api/colaboradores/$id': typeof ApiColaboradoresIdRoute
   '/api/email-config/test': typeof ApiEmailConfigTestRoute
   '/api/exames/$id': typeof ApiExamesIdRoute
   '/api/exames/enviar-confirmacao': typeof ApiExamesEnviarConfirmacaoRoute
+  '/api/exames/historico': typeof ApiExamesHistoricoRoute
   '/_authenticated/colaboradores/': typeof AuthenticatedColaboradoresIndexRoute
   '/api/exames/': typeof ApiExamesIndexRoute
 }
@@ -259,10 +286,13 @@ export interface FileRouteTypes {
     | '/api/notificacoes'
     | '/api/setup'
     | '/colaboradores/$id'
+    | '/api/asos/listar'
+    | '/api/asos/upload'
     | '/api/colaboradores/$id'
     | '/api/email-config/test'
     | '/api/exames/$id'
     | '/api/exames/enviar-confirmacao'
+    | '/api/exames/historico'
     | '/colaboradores/'
     | '/api/exames/'
   fileRoutesByTo: FileRoutesByTo
@@ -284,10 +314,13 @@ export interface FileRouteTypes {
     | '/api/notificacoes'
     | '/api/setup'
     | '/colaboradores/$id'
+    | '/api/asos/listar'
+    | '/api/asos/upload'
     | '/api/colaboradores/$id'
     | '/api/email-config/test'
     | '/api/exames/$id'
     | '/api/exames/enviar-confirmacao'
+    | '/api/exames/historico'
     | '/colaboradores'
     | '/api/exames'
   id:
@@ -310,10 +343,13 @@ export interface FileRouteTypes {
     | '/api/notificacoes'
     | '/api/setup'
     | '/_authenticated/colaboradores/$id'
+    | '/api/asos/listar'
+    | '/api/asos/upload'
     | '/api/colaboradores/$id'
     | '/api/email-config/test'
     | '/api/exames/$id'
     | '/api/exames/enviar-confirmacao'
+    | '/api/exames/historico'
     | '/_authenticated/colaboradores/'
     | '/api/exames/'
   fileRoutesById: FileRoutesById
@@ -330,8 +366,11 @@ export interface RootRouteChildren {
   ApiLoginRoute: typeof ApiLoginRoute
   ApiNotificacoesRoute: typeof ApiNotificacoesRoute
   ApiSetupRoute: typeof ApiSetupRoute
+  ApiAsosListarRoute: typeof ApiAsosListarRoute
+  ApiAsosUploadRoute: typeof ApiAsosUploadRoute
   ApiExamesIdRoute: typeof ApiExamesIdRoute
   ApiExamesEnviarConfirmacaoRoute: typeof ApiExamesEnviarConfirmacaoRoute
+  ApiExamesHistoricoRoute: typeof ApiExamesHistoricoRoute
   ApiExamesIndexRoute: typeof ApiExamesIndexRoute
 }
 
@@ -470,6 +509,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedColaboradoresIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/exames/historico': {
+      id: '/api/exames/historico'
+      path: '/api/exames/historico'
+      fullPath: '/api/exames/historico'
+      preLoaderRoute: typeof ApiExamesHistoricoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/exames/enviar-confirmacao': {
       id: '/api/exames/enviar-confirmacao'
       path: '/api/exames/enviar-confirmacao'
@@ -497,6 +543,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/colaboradores/$id'
       preLoaderRoute: typeof ApiColaboradoresIdRouteImport
       parentRoute: typeof ApiColaboradoresRoute
+    }
+    '/api/asos/upload': {
+      id: '/api/asos/upload'
+      path: '/api/asos/upload'
+      fullPath: '/api/asos/upload'
+      preLoaderRoute: typeof ApiAsosUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/asos/listar': {
+      id: '/api/asos/listar'
+      path: '/api/asos/listar'
+      fullPath: '/api/asos/listar'
+      preLoaderRoute: typeof ApiAsosListarRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/colaboradores/$id': {
       id: '/_authenticated/colaboradores/$id'
@@ -568,8 +628,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiLoginRoute: ApiLoginRoute,
   ApiNotificacoesRoute: ApiNotificacoesRoute,
   ApiSetupRoute: ApiSetupRoute,
+  ApiAsosListarRoute: ApiAsosListarRoute,
+  ApiAsosUploadRoute: ApiAsosUploadRoute,
   ApiExamesIdRoute: ApiExamesIdRoute,
   ApiExamesEnviarConfirmacaoRoute: ApiExamesEnviarConfirmacaoRoute,
+  ApiExamesHistoricoRoute: ApiExamesHistoricoRoute,
   ApiExamesIndexRoute: ApiExamesIndexRoute,
 }
 export const routeTree = rootRouteImport

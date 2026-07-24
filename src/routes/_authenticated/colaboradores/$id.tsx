@@ -2,7 +2,21 @@ import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-r
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Save,
+  Trash2,
+  Download,
+  FileText,
+  Loader2,
+  Calendar,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Ban,
+  AlertTriangle,
+  History,
+} from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { authFetch } from "@/lib/custom-auth";
 import { PageContainer, PageHeader } from "@/components/page-header";
@@ -22,6 +36,17 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { Colaborador } from "@/lib/colaboradores";
+
+interface HistoricoEntry {
+  id: string;
+  colaborador_id: string;
+  exame_id: string | null;
+  evento: string;
+  descricao: string;
+  detalhes: Record<string, unknown> | null;
+  created_at: string;
+  exame: { id: string; tipo: string; status: string; data_agendada: string | null } | null;
+}
 
 export const Route = createFileRoute("/_authenticated/colaboradores/$id")({
   component: EditColab,
@@ -82,6 +107,32 @@ function EditColab() {
       if (!res.ok) throw new Error("Erro ao buscar colaborador");
       const json = await res.json();
       return json.data as Colaborador | null;
+    },
+    enabled: !isNew,
+  });
+
+  // Busca ASOs do colaborador no Storage
+  const { data: asos = [], isLoading: loadingAsos } = useQuery<Array<{ name: string; url: string; createdAt: string }>>({
+    queryKey: ["asos", id],
+    queryFn: async () => {
+      if (isNew) return [];
+      const res = await authFetch(`/api/asos/listar?colaborador_id=${id}`);
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.data ?? [];
+    },
+    enabled: !isNew,
+  });
+
+  // Busca histórico de eventos
+  const { data: historico = [], isLoading: loadingHistorico } = useQuery<HistoricoEntry[]>({
+    queryKey: ["historico", id],
+    queryFn: async () => {
+      if (isNew) return [];
+      const res = await authFetch(`/api/exames/historico?colaborador_id=${id}`);
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.data ?? [];
     },
     enabled: !isNew,
   });
@@ -331,6 +382,103 @@ function EditColab() {
           </div>
         )}
       </form>
+
+      {/* ── ASOs ── */}
+      {!isNew && (
+        <div className="mt-6 rounded-lg border border-border bg-card p-6 shadow-panel">
+          <div className="text-sm font-medium mb-4 flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            ASOs do colaborador
+          </div>
+
+          {loadingAsos ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Carregando...
+            </div>
+          ) : asos.length === 0 ? (
+            <div className="text-sm text-muted-foreground">Nenhum ASO encontrado no storage.</div>
+          ) : (
+            <div className="space-y-2">
+              {asos.map((aso, i) => (
+                <div
+                  key={aso.name}
+                  className="flex items-center justify-between rounded-md border border-border bg-muted/20 p-3"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium truncate">{aso.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(aso.createdAt).toLocaleString("pt-BR")}
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="ml-3 shrink-0"
+                    onClick={() => window.open(aso.url, "_blank")}
+                  >
+                    <Download className="h-4 w-4 mr-1.5" />
+                    Baixar
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Histórico ── */}
+      {!isNew && (
+        <div className="mt-6 rounded-lg border border-border bg-card p-6 shadow-panel">
+          <div className="text-sm font-medium mb-4 flex items-center gap-2">
+            <History className="h-4 w-4" />
+            Histórico de eventos
+          </div>
+
+          {loadingHistorico ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Carregando...
+            </div>
+          ) : historico.length === 0 ? (
+            <div className="text-sm text-muted-foreground">Nenhum evento registrado ainda.</div>
+          ) : (
+            <div className="space-y-1">
+              {historico.map((entry) => (
+                <div
+                  key={entry.id}
+                  className="flex items-start gap-3 rounded-md border border-border bg-muted/10 p-3"
+                >
+                  <div className="mt-0.5 shrink-0">
+                    <EventoIcon evento={entry.evento} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        <EventoLabel evento={entry.evento} />
+                      </span>
+                      {entry.exame && (
+                        <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                          {entry.exame.tipo.replace(/_/g, " ")}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-sm mt-0.5">{entry.descricao}</div>
+                    {entry.detalhes?.justificativa && (
+                      <div className="text-xs text-muted-foreground mt-0.5 italic">
+                        Justificativa: {entry.detalhes.justificativa as string}
+                      </div>
+                    )}
+                    <div className="text-[10px] text-muted-foreground mt-1">
+                      {new Date(entry.created_at).toLocaleString("pt-BR")}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </PageContainer>
   );
 }
@@ -350,4 +498,42 @@ function Field({
       {children}
     </div>
   );
+}
+
+function EventoIcon({ evento }: { evento: string }) {
+  const size = "h-3.5 w-3.5";
+  switch (evento) {
+    case "agendado":
+      return <Calendar className={`${size} text-blue-500`} />;
+    case "compareceu_1":
+      return <CheckCircle2 className={`${size} text-purple-500`} />;
+    case "compareceu_2":
+      return <CheckCircle2 className={`${size} text-indigo-500`} />;
+    case "faltou":
+      return <Ban className={`${size} text-red-500`} />;
+    case "cancelado":
+      return <XCircle className={`${size} text-slate-400`} />;
+    case "liberado":
+      return <CheckCircle2 className={`${size} text-green-500`} />;
+    case "aso_anexado":
+      return <FileText className={`${size} text-amber-500`} />;
+    case "pendente":
+      return <AlertTriangle className={`${size} text-orange-500`} />;
+    default:
+      return <Clock className={`${size} text-muted-foreground`} />;
+  }
+}
+
+function EventoLabel({ evento }: { evento: string }) {
+  const labels: Record<string, string> = {
+    agendado: "Agendado",
+    compareceu_1: "1ª etapa",
+    compareceu_2: "2ª etapa",
+    faltou: "Faltou",
+    cancelado: "Cancelado",
+    liberado: "Liberado",
+    aso_anexado: "ASO anexado",
+    pendente: "Pendente",
+  };
+  return <>{labels[evento] ?? evento}</>;
 }

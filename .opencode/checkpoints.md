@@ -1,10 +1,7 @@
-# Checkpoint — 23/07/2026
+# Checkpoints
 
-## Estado Atual
-- Build: ✅ passa (client + SSR + Nitro)
-- Rotas: `exames/index.ts` + `exames/enviar-confirmacao.ts` (conflito de diretório resolvido)
-- Prisma: model `Exame` + `EmailContato` + `EmailConfig` — todos `prisma db push` aplicados
-- Frontend: página `/agendar-exames` com formulário completo e listagem
-
-## Pendente
-- Testar fluxo: "Agendar" e "Agendar e enviar confirmação" agora que a rota está correta
+## Sessão 2024-07-24
+- Estado: Build OK
+- `kanban-exames.tsx`: getCardDate contextual, STATUS_LABEL, handleConfirmFaltou redireciona para agendado
+- `agendar-exames.tsx`: cards por colaborador com todos os exames, reagendamento, badge de faltou, invalidação cruzada Kanban
+- Próximos passos: N/A

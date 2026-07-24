@@ -40,6 +40,7 @@ export const Route = createFileRoute("/api/exames/$id")({
           if (body.clinica !== undefined) updateData.clinica = body.clinica;
           if (body.motivo_pendencia !== undefined) updateData.motivo_pendencia = body.motivo_pendencia;
           if (body.justificativa !== undefined) updateData.justificativa = body.justificativa;
+          if (body.arquivo_url !== undefined) updateData.arquivo_url = body.arquivo_url;
 
           const updated = await prisma.exame.update({
             where: { id: params.id },
