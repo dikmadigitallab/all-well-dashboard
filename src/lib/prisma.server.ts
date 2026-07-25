@@ -1,11 +1,11 @@
-// @prisma/client é CJS — usar createRequire com base no process.cwd()
-// (import.meta.url não funciona porque o bundler move o módulo para _libs/)
-import { createRequire } from "module";
+// @prisma/client é CJS — usamos import default + bracket notation
+// para evitar que o bundler otimize para named import (que não funciona com CJS)
+import clientPkg from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-const _require = createRequire(process.cwd() + "/");
-const { PrismaClient } = _require("@prisma/client");
+// Bracket notation impede o bundler de otimizar para `import { PrismaClient }`
+const PrismaClient: typeof clientPkg.PrismaClient = (clientPkg as any)["PrismaClient" as string];
 
 /**
  * Prisma Client para uso server-side.
