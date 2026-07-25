@@ -27,11 +27,7 @@ export default defineConfig({
         "pg",
       ],
     },
-    // Força bundle do tslib em vez de externalizar/traçar, porque o trace do Nitro
-    // copia apenas parte dos arquivos (falta tslib.es6.mjs) e o npm install da
-    // Vercel falha com o package.json inválido (contém ".prisma" que não é um
-    // nome de pacote npm válido)
-    noExternals: ["tslib"],
-    traceDeps: ["!tslib"],
+    // tslib é traçado (copiado) para node_modules da função — não inlinear para
+    // evitar conflito com __esModule do tslib que quebra o __toESM do bundler
   },
 });

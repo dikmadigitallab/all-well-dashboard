@@ -1,43 +1,59 @@
 # Memorias
 
-## Sessão: 2026-07-24 — Fix deploy Vercel (continuação)
+## Sessão: 2026-07-24 — Fix deploy Vercel (final)
 
-### Problemas Resolvidos
+### Problema 1: Prisma Client não encontrado
+```
+Error: Cannot find module '.prisma/client/default'
+```
+- ✅ Causa: `prisma generate` nunca executado na Vercel  
+- ✅ Fix: `"postinstall": "prisma generate"` no `package.json`
 
-1. **Prisma Client não encontrado** — `Error: Cannot find module '.prisma/client/default'`
-   - ✅ Causa: `prisma generate` nunca executado na Vercel
-   - ✅ Fix: `"postinstall": "prisma generate"` no package.json
+### Problema 2: tslib não encontrado (ERR_MODULE_NOT_FOUND)
+```
+Error: Cannot find package 'tslib'
+```
+- ✅ Causa: Nitro traçava `tslib` mas copiava apenas `modules/`, `package.json` e `tslib.js` — faltava `tslib.es6.mjs`, que é o entrypoint ESM exigido pelo `import { __assign } from "tslib"`  
+- ✅ Fix (tentativa 1 — falhou): `noExternals: ["tslib"]` + `traceDeps: ["!tslib"]` — inlinou o tslib, mas quebrou o `__toESM` do bundler porque o tslib tem `__esModule: true`  
+- ✅ Fix (final): Remover `noExternals`/`traceDeps`, deixar tslib ser traçado normalmente + script pós-build copia os arquivos faltantes
 
-2. **tslib não encontrado** — `Error: Cannot find package 'tslib'`
-   - ✅ Causa: Nitro traçava `tslib` como dependência externa, mas copiava apenas parte dos arquivos (faltava `tslib.es6.mjs`)
-   - ✅ Fix: `noExternals: ["tslib"]` + `traceDeps: ["!tslib"]` — força bundling inline do tslib
+### Problema 3: Dependência inválida `.prisma` no package.json da função
+- ✅ Causa: Nitro listava `node_modules/.prisma` como `".prisma": "0.0.0"` no `package.json` da função — `.prisma` não é nome de pacote npm válido, quebrava o `npm install` na Vercel  
+- ✅ Fix duplo:
+  - Preventivo: `".prisma"` no `externals.external` do `vite.config.ts`
+  - Redundante: script `scripts/clean-function-package.mjs` remove dependências com nome começando por `.`
 
-3. **Dependência inválida `.prisma` no package.json da função** — `npm install` quebrava na Vercel
-   - ✅ Causa: Nitro listava `node_modules/.prisma` como `".prisma": "0.0.0"` no `package.json` da função, mas `.prisma` não é um nome de pacote npm válido
-   - ✅ Fix duplo:
-     - Preventivo: `".prisma"` adicionado ao `externals.external` no `vite.config.ts`
-     - Redundante: script `scripts/clean-function-package.mjs` roda após o build e remove dependências com nome começando por `.`
+### Problema 4: TypeError no bundle inline do tslib
+```
+TypeError: Cannot destructure property '__extends' of '__toESM(...).default' as it is undefined.
+```
+- ✅ Causa: `noExternals: ["tslib"]` fez o bundler inlinear o tslib. O tslib CJS tem `__esModule: true` (setado pelo `createExporter`). O `__toESM` vê isso e retorna o objeto sem `.default`, mas o código tenta acessar `.default` — resultando em `undefined`  
+- ✅ Fix: Reverter o inline, deixar tslib como dependência externa traçada, e garantir que `tslib.es6.mjs` seja copiado
 
-### Alterações Feitas
+### Alterações Atuais
 
-1. **vite.config.ts**
-   - `noExternals: ["tslib"]` — força bundle inline do tslib em vez de externalizar
-   - `traceDeps: ["!tslib"]` — exclui tslib do tracing
-   - `externals.external` agora inclui `".prisma"` (além dos já existentes)
+**`vite.config.ts`**
+- `preset: "vercel"` — sobrescreve o default `cloudflare-module`
+- `externals.external`: `@prisma/client`, `.prisma/client`, `.prisma`, `prisma`, `@prisma/adapter-pg`, `pg`
+- Sem `noExternals` ou `traceDeps` — tslib é traçado normalmente
 
-2. **scripts/clean-function-package.mjs** (novo)
-   - Lê `.vercel/output/functions/__server.func/package.json`
-   - Remove dependências com nome inválido (começam com `.`)
-   - Executado automaticamente via `npm run build`
+**`scripts/clean-function-package.mjs`** (faz 3 coisas)
+1. Remove dependências inválidas (`.prisma`) do `package.json` da função
+2. Copia arquivos faltantes do `tslib` (`tslib.es6.mjs`, `tslib.es6.js`, `tslib.d.ts`) da raiz para `node_modules/tslib/` da função
+3. Verifica integridade do `.prisma` no node_modules da função
 
-3. **package.json**
-   - Scripts `build` e `build:dev` agora encadeiam `&& node scripts/clean-function-package.mjs`
+**`package.json`**
+- `"postinstall": "prisma generate"`
+- `"tslib": "^2.8.1"` como dependência direta
+- `build` executa: `vite build && node scripts/clean-function-package.mjs`
 
 ### Resultado Final
 - Build local: ✅ sucesso
-- Tracing: 3 dependências (sem tslib), 10 arquivos
-- `tslib`: bundled inline no `@radix-ui/react-alert-dialog+[...].mjs` (104.50 kB)
-- `package.json` da função: limpo, sem `.prisma`
+- Tracing: 4 dependências incluindo `tslib` (14 arquivos)
+- `@radix-ui/react-alert-dialog+[...].mjs`: 83.09 kB (tslib NÃO inlinado)
+- Import: `import { __assign, __rest, __spreadArray } from "tslib"` (externo)
+- `node_modules/tslib/` na função: completo (com `tslib.es6.mjs`)
+- `package.json` da função: apenas `@prisma/client`, `@prisma/client-runtime-utils`, `tslib`
 - Pronto para deploy na Vercel
 
 ### Pendente

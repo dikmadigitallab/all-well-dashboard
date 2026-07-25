@@ -1,6 +1,6 @@
 import { o as __toESM } from "../_runtime.mjs";
 import { i as require_react } from "../_libs/dnd-kit__accessibility+react.mjs";
-import { L as require_jsx_runtime, _ as DialogTrigger$1, d as DialogClose, f as DialogContent$1, g as DialogTitle$1, h as DialogPortal$1, m as DialogOverlay$1, p as DialogDescription$1, u as Dialog$1 } from "../_libs/@radix-ui/react-alert-dialog+[...].mjs";
+import { F as require_jsx_runtime, _ as DialogTrigger$1, d as DialogClose, f as DialogContent$1, g as DialogTitle$1, h as DialogPortal$1, m as DialogOverlay$1, p as DialogDescription$1, u as Dialog$1 } from "../_libs/@radix-ui/react-alert-dialog+[...].mjs";
 import { r as cn } from "./button-PwNqyxv_.mjs";
 import { t as X } from "../_libs/lucide-react.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/dialog-BvYONHWJ.js

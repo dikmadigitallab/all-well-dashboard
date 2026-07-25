@@ -1,6 +1,6 @@
 import { i as __require, o as __toESM, t as __commonJSMin } from "../../_runtime.mjs";
 import { i as require_react } from "../dnd-kit__accessibility+react.mjs";
-import { L as require_jsx_runtime } from "../@radix-ui/react-alert-dialog+[...].mjs";
+import { F as require_jsx_runtime } from "../@radix-ui/react-alert-dialog+[...].mjs";
 import { g as require_react_dom } from "../@dnd-kit/core+[...].mjs";
 import { r as parseHref } from "../tanstack__history.mjs";
 import { PassThrough, Readable } from "node:stream";
