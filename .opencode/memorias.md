@@ -1,88 +1,27 @@
-# Memórias do Projeto
+# Memorias
 
-## 2024-07-24 — Correção: Status do card não reflete regressão no Kanban
-[...]
+## Sessão: 2026-07-24 — Fix deploy Vercel (Prisma MODULE_NOT_FOUND)
 
-## 2024-07-24 — Fluxo de "Faltou" redireciona para agendamento
-[...]
+### Problema
+Erro ao deploy na Vercel:
+```
+Error: Cannot find module '.prisma/client/default'
+Require stack: /var/task/node_modules/@prisma/client/default.js
+```
 
-## 2024-07-24 — Tela de agendamento: cards por colaborador
+### Causa
+O `@prisma/client/default.js` faz `require('.prisma/client/default')`, que o Node.js resolve através da cadeia de `node_modules/` até `node_modules/.prisma/client/default.js`. Esse diretório só existe após executar `prisma generate`. Na Vercel, o `prisma generate` nunca era executado durante o build.
 
-**Problema:** A listagem de exames agendados era agrupada por data (linhas soltas), dificultando a visualização de todos os agendamentos de um mesmo colaborador.
+### Alterações Feitas
 
-**Solução:**
-- Agrupamento `examesPorColaborador` em vez de `examesPorData`
-- Cada colaborador agora aparece em um **Card** com nome, empresa e todos os seus exames listados dentro
-- Cada exame dentro do card mostra: tipo, clínica, badges das etapas (1ª e/ou 2ª), badge "Faltou" se houver, botões de reagendar e desmarcar
-- `examesPorData` removido (não usado)
+1. **package.json** — Adicionado script `postinstall: "prisma generate"` para garantir que o Prisma Client seja gerado automaticamente após `npm install` na Vercel.
 
-**Arquivos alterados:**
-- `src/routes/_authenticated/agendar-exames.tsx`
+2. **vite.config.ts** — Adicionada configuração Nitro para Vercel:
+   - `preset: "vercel"` — sobrescreve o default `cloudflare-module` do Lovable config
+   - `externals.external` — externaliza `@prisma/client`, `.prisma/client`, `prisma`, `@prisma/adapter-pg` e `pg` para evitar que o bundler quebre as requires dinâmicas
 
-## 2026-07-24 — Kanban: coluna "A agendar" com exames faltou + badge de etapa
+### Resultado
+Build executado com sucesso localmente. Saída gerada em `.vercel/output/` no formato esperado pela Vercel.
 
-**Problemas:**
-1. Drag para "a_agendar" era bloqueado (`buildDropPayload` retornava `null`)
-2. Ao clicar "Faltou", o status era setado como `"agendado"` em vez de ir para "a agendar"
-3. Coluna "a agendar" só exibia colaboradores `sem_exame`, ignorando exames com falta
-4. Não exibia qual etapa o colaborador faltou
-
-**Solução:**
-- `buildDropPayload` agora aceita `"a_agendar"` → seta status `"faltou"`
-- `handleConfirmFaltou` seta status `"faltou"` (em vez de `"agendado"`) + limpa `data_agendada`
-- Coluna "a agendar" agora exibe **ColaboradorCard** (sem_exame) + **ExameCard** (faltou)
-- `ExameCard` ganhou campos `etapa_faltou` e `justificativa_falta`
-- Card exibe badge extra "Faltou Nª etapa" quando `etapa_faltou` está preenchido
-- Filtros de `primeira_etapa` e `segunda_etapa` excluem status `"faltou"` para não duplicar
-
-**Arquivos alterados:**
-- `src/routes/_authenticated/kanban-exames.tsx`
-
-## 2026-07-24 — Correção: Ícone de edição (lápis) quebrava tela de agendamento
-
-**Problema:** Clicar no ícone de lápis para editar um exame na tela de agendamento fazia o React lançar erro "Invalid time value" e quebrava a aplicação.
-
-**Causa raiz:** A API do Prisma serializa datas como ISO string completa (`"2024-07-24T00:00:00.000Z"`). O `handleEditExame` concatenava `+ "T12:00:00"` resultando em `"2024-07-24T00:00:00.000ZT12:00:00"` → **data inválida**. O `format()` do date-fns então lançava exceção.
-
-**Solução:**
-- Criada função `parseDateSafe(d)` que extrai apenas a parte da data (`split("T")[0]`) antes de criar o Date, evitando datas inválidas
-- Usada também no registro de histórico do agendamento
-- Corrigido payload de edição: agora só envia `data_agendada` + `clinica` (não mais `data_1_etapa`/`data_2_etapa`, que sobrescreviam dados incorretamente)
-- Adicionado `data_agendada` no handler PUT da API (`$id.ts`), que estava faltando
-- Corrigido tipo da mutation `criarExame` para incluir `data_1_etapa` e `data_2_etapa`
-- Removidos `console.log` de debug
-
-**Arquivos alterados:**
-- `src/routes/_authenticated/agendar-exames.tsx`
-- `src/routes/api/exames/$id.ts`
-
-## 2026-07-24 — Paginação na listagem de colaboradores
-
-**Problema:** A tela de colaboradores carregava todos os registros de uma vez e limitava a exibição em 500, sem navegação entre páginas.
-
-**Solução (client-side):**
-- Estado `page` + constante `perPage = 50`
-- `paginado` = slice calculado com base na página atual
-- `useEffect` reseta página para 1 quando filtros/ordenação mudam
-- Navegação no footer da tabela com botões Anterior/Próximo + números de página com elipses (`1 … 3 4 5 … 20`)
-- "Selecionar todos" opera apenas na página atual
-- Indicador "X–Y de Z resultados" no rodapé
-
-**Arquivos alterados:**
-- `src/routes/_authenticated/colaboradores/index.tsx`
-
-## 2026-07-24 — SSR 500 no Vercel: Prisma eager load quebrava landing page
-
-**Problema:** Toda request para `/` no Vercel retornava 500 com `h3 swallowed SSR error: {"status":500,"unhandled":true,"message":"HTTPError"}`.
-
-**Causa raiz:** `prisma.server.ts` exportava `const prisma = getPrisma()` no módulo — isso executava `createPrisma()` **no momento da importação** do módulo. Como o bundle SSR carrega todas as rotas (incluindo API) num único módulo (`router-*.mjs`), a inicialização do PrismaClient + Pool pg rodava a cada SSR. Se `DATABASE_URL` não estava disponível ou a conexão falhava, o módulo quebrava, derrubando o SSR inteiro.
-
-**Solução:**
-1. `prisma.server.ts` — Substituído `export const prisma = getPrisma()` por um **Proxy lazy** que só chama `getPrisma()` no primeiro acesso a uma propriedade
-2. `server.ts` — Melhorada mensagem de log no `normalizeCatastrophicSsrResponse` para diferenciar erro capturado de erro genérico
-3. `error-capture.ts` — Adicionado fallback `process.on('uncaughtException'/'unhandledRejection')` para ambientes Node.js (Vercel serverless)
-
-**Arquivos alterados:**
-- `src/lib/prisma.server.ts`
-- `src/server.ts`
-- `src/lib/error-capture.ts`
+### Autoria
+VIBECODE

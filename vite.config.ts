@@ -12,4 +12,19 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  nitro: {
+    // Preset para deploy na Vercel (Node.js runtime)
+    preset: "vercel",
+    // Externaliza @prisma/client para evitar que o bundler quebre as requires
+    // dinâmicas para .prisma/client (gerado pelo prisma generate)
+    externals: {
+      external: [
+        "@prisma/client",
+        ".prisma/client",
+        "prisma",
+        "@prisma/adapter-pg",
+        "pg",
+      ],
+    },
+  },
 });

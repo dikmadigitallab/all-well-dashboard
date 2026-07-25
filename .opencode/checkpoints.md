@@ -30,3 +30,14 @@
 - Estado: Build OK
 - `colaboradores/index.tsx`: paginação client-side, `perPage=50`, navegação com números + elipses, selecionar todos por página, reseta página ao filtrar
 - Próximos passos: N/A
+
+## Sessão 2026-07-24 (Deploy Vercel — testes 01, 02 e 03)
+- Estado: Build OK, push feito (`eea0585` em `main`)
+- Problemas enfrentados:
+  1. `Named export 'PrismaClient' not found` — import named de módulo CJS
+  2. `Cannot find module '@prisma/client'` — createRequire não acha módulo (node_modules não existe no deploy pre-built)
+- Solução atual (testes 03): `import pkg from "@prisma/client"` + `pkg["PrismaClient"]` (bracket notation)
+  - Bundler cria chunk em `_libs/@prisma/client.mjs` — vai junto no deploy
+  - Bracket notation impede otimização para named import
+- Commit: `eea0585` — "testes 03"
+- **Próximo passo:** Fazer deploy no Vercel a partir da `main` e testar a landing page `/`
