@@ -106,10 +106,11 @@ export async function searchEmails(params: EmailSearchParams): Promise<SearchRes
 
         try {
           // Tenta busca com string IMAP nativa
-          const filteredUids = await client.search(filterStr);
+          const filteredUids = ((await client.search(filterStr as any)) || []) as number[];
           debug.filteredUidsCount = filteredUids.length;
           debug.filteredUids = filteredUids.slice(0, 20);
           targetUids = filteredUids;
+
         } catch (searchErr) {
           debug.filterSearchError = String(searchErr);
           // Fallback: usa unseen e filtra manualmente depois
