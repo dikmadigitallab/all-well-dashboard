@@ -36,6 +36,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { Colaborador } from "@/lib/colaboradores";
+import { gerarASO } from "@/lib/reports";
+
 
 interface HistoricoEntry {
   id: string;
