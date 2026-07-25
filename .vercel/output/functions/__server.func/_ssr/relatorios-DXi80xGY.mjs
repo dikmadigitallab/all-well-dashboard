@@ -1,6 +1,6 @@
 import { o as __toESM } from "../_runtime.mjs";
 import { i as require_react } from "../_libs/dnd-kit__accessibility+react.mjs";
-import { F as require_jsx_runtime } from "../_libs/@radix-ui/react-alert-dialog+[...].mjs";
+import { L as require_jsx_runtime } from "../_libs/@radix-ui/react-alert-dialog+[...].mjs";
 import { n as PageHeader, t as PageContainer } from "./page-header-s_STzGKq.mjs";
 import { t as Button } from "./button-PwNqyxv_.mjs";
 import { t as Input } from "./input-uzm9g8Y7.mjs";

@@ -1,19 +1,16 @@
-# Checkpoints
+# Checkpoint — 2026-07-24
 
-## Sessão: 2026-07-24 — Fix deploy Vercel
+## Estado Atual
+- Build local: ✅ passa com npm run build
+- tslib: bundled inline (não externalizado)
+- .prisma: removido do package.json da função via postbuild script
+- Pronto para deploy na Vercel
 
-### Estado atual
-- Build local funcionando (vite build → Nitro preset vercel)
-- Saída em `.vercel/output/` — formato nativo Vercel
-- Prisma Client gerado em `node_modules/.prisma/client/`
+## Últimos Commits
+- (pendente) — o usuário precisa commitar e fazer push para testar o deploy
 
-### Arquivos modificados
-- `package.json` — postinstall + tslib dependency
-- `vite.config.ts` — nitro preset vercel + externals config
-- `.opencode/memorias.md` — registro de decisões
-- `.opencode/checkpoints.md` — este arquivo
-
-### Próximos passos
-- Commitar e fazer push para Vercel
-- Validar deploy na Vercel
-- Se houver erro, verificar logs da Vercel para mais detalhes
+## Mudanças desde o último checkpoint
+- `vite.config.ts`: adicionado `.prisma` ao externals, `noExternals`, `traceDeps`
+- `package.json`: build command com postbuild script
+- `scripts/clean-function-package.mjs`: novo arquivo
+- `tslib` adicionado como dependência direta

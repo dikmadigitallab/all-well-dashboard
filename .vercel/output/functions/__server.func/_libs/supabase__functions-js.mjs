@@ -1,4 +1,4 @@
-import { __awaiter } from "tslib";
+import { b as __awaiter } from "./@radix-ui/react-alert-dialog+[...].mjs";
 //#region node_modules/@supabase/functions-js/dist/module/helper.js
 var resolveFetch = (customFetch) => {
 	if (customFetch) return (...args) => customFetch(...args);

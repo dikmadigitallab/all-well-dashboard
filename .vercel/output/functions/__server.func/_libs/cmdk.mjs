@@ -1,6 +1,6 @@
 import { o as __toESM } from "../_runtime.mjs";
 import { i as require_react } from "./dnd-kit__accessibility+react.mjs";
-import { A as Primitive, D as useId, N as composeRefs, f as DialogContent, h as DialogPortal, m as DialogOverlay, u as Dialog } from "./@radix-ui/react-alert-dialog+[...].mjs";
+import { F as composeRefs, M as Primitive, f as DialogContent, h as DialogPortal, k as useId, m as DialogOverlay, u as Dialog } from "./@radix-ui/react-alert-dialog+[...].mjs";
 //#region node_modules/cmdk/dist/chunk-NZJY6EH4.mjs
 var U = 1;
 var Y$1 = .9;

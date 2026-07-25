@@ -21,13 +21,17 @@ export default defineConfig({
       external: [
         "@prisma/client",
         ".prisma/client",
+        ".prisma",
         "prisma",
         "@prisma/adapter-pg",
         "pg",
       ],
-      traceExclude: [
-        "tslib",
-      ],
     },
+    // Força bundle do tslib em vez de externalizar/traçar, porque o trace do Nitro
+    // copia apenas parte dos arquivos (falta tslib.es6.mjs) e o npm install da
+    // Vercel falha com o package.json inválido (contém ".prisma" que não é um
+    // nome de pacote npm válido)
+    noExternals: ["tslib"],
+    traceDeps: ["!tslib"],
   },
 });

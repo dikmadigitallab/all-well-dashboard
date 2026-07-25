@@ -1,4 +1,4 @@
-import { F as require_jsx_runtime } from "../_libs/@radix-ui/react-alert-dialog+[...].mjs";
+import { L as require_jsx_runtime } from "../_libs/@radix-ui/react-alert-dialog+[...].mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/page-header-s_STzGKq.js
 var import_jsx_runtime = require_jsx_runtime();
 function PageHeader({ title, description, actions }) {
