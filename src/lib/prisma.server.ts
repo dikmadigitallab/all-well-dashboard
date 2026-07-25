@@ -1,9 +1,10 @@
-// @prisma/client é CJS — import default para compatibilidade ESM no Vercel
-import prismaPkg from "@prisma/client";
+// @prisma/client é CJS — usar createRequire (bundler não otimiza para named import)
+import { createRequire } from "module";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-const { PrismaClient } = prismaPkg;
+const _require = createRequire(import.meta.url);
+const { PrismaClient } = _require("@prisma/client");
 
 /**
  * Prisma Client para uso server-side.
