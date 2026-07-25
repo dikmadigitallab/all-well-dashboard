@@ -1,11 +1,11 @@
-// @prisma/client é CJS — usamos import default + bracket notation
-// para evitar que o bundler otimize para named import (que não funciona com CJS)
-import clientPkg from "@prisma/client";
+// @prisma/client é CJS — usamos import * para garantir acesso ao PrismaClient
+import * as clientPkg from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
 // Bracket notation impede o bundler de otimizar para `import { PrismaClient }`
-const PrismaClient: typeof clientPkg.PrismaClient = (clientPkg as any)["PrismaClient" as string];
+const PrismaClient: any = (clientPkg as any)["PrismaClient" as string];
+type PrismaClient = any;
 
 /**
  * Prisma Client para uso server-side.
@@ -15,6 +15,7 @@ const PrismaClient: typeof clientPkg.PrismaClient = (clientPkg as any)["PrismaCl
 let _prisma: PrismaClient | null = null;
 
 function createPrisma(): PrismaClient {
+
   const isProd = process.env.NODE_ENV === "production";
 
   const pool = new Pool({
