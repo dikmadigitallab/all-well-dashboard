@@ -1,29 +1,22 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import {
-  LayoutDashboard,
-  Users,
-  Upload,
-  LogOut,
-  ShieldCheck,
-  Eye,
-  CalendarCheck,
-  AlertTriangle,
-  FileBarChart2,
-} from "lucide-react";
+import { LayoutDashboard, Users, Upload, LogOut, ShieldCheck, Eye, FileText, Mail, CalendarPlus, Columns3 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/notification-bell";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "@/components/notification-bell";
 
-const nav: Array<{ to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean }> = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/colaboradores", label: "Colaboradores", icon: Users },
-  { to: "/exames", label: "Agenda de exames", icon: CalendarCheck },
-  { to: "/pendencias", label: "Pendências", icon: AlertTriangle },
-  { to: "/relatorios", label: "Relatórios", icon: FileBarChart2 },
-  { to: "/importar", label: "Importar planilha", icon: Upload, adminOnly: true },
-];
+const nav: Array<{ to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean }> =
+  [
+    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/colaboradores", label: "Colaboradores", icon: Users },
+    { to: "/kanban-exames", label: "Kanban Exames", icon: Columns3, adminOnly: true },
+    { to: "/agendar-exames", label: "Agendar exames", icon: CalendarPlus, adminOnly: true },
+    { to: "/importar", label: "Importar planilha", icon: Upload, adminOnly: true },
+    { to: "/gerar-formularios", label: "Gerar formulários", icon: FileText, adminOnly: true },
+    { to: "/config-email", label: "Config. Email", icon: Mail },
+  ];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, isAdmin, signOut } = useAuth();
@@ -43,10 +36,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="h-9 w-9 rounded-md bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center font-semibold">
               A
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <div className="text-sm font-semibold leading-tight">Controle de ASOs</div>
-              <div className="text-[11px] text-sidebar-foreground/70">Gestão de Saúde Ocupacional</div>
+              <div className="text-[11px] text-sidebar-foreground/70">
+                Gestão de Saúde Ocupacional
+              </div>
             </div>
+            {isAdmin && <NotificationBell />}
           </div>
         </div>
 
@@ -75,7 +71,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <div className="p-3 border-t border-sidebar-border space-y-2">
           <div className="px-3 py-2 rounded-md bg-sidebar-accent/40 text-xs">
-            <div className="font-medium truncate">{user?.email}</div>
+            <div className="font-medium truncate">
+              {user?.fullName ?? user?.username ?? "Usuário"}
+            </div>
             <div className="mt-1 flex items-center gap-1 text-sidebar-foreground/80">
               {isAdmin ? (
                 <>

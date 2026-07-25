@@ -1,0 +1,15 @@
+git status : ver se tem algo pra subir
+git add *: adciona as mudanças
+git commit -m 'mensagem': /fix, hotfix, bug, update
+git push origin branch (me) //subir a versao pro git
+
+git restore .  voltar ao estado original do codigo
+
+git checkout -b nome_branch   criar novas branchs
+git checkout nome_branch 
+git pull origin oscar 
+ 
+git pull atualiza a branch
+
+git push -u origin  nome_branch
+

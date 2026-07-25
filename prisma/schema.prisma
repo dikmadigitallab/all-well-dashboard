@@ -1,0 +1,250 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ───
+
+enum AppRole {
+  admin
+  gestor
+}
+
+enum AsoStatus {
+  em_dia
+  a_vencer
+  vencido
+  sem_exame
+}
+
+enum ExameTipo {
+  admissional
+  periodico
+  demissional
+  retorno_ao_trabalho
+  mudanca_riscos
+  complementar
+}
+
+enum ExameStatus {
+  a_vencer
+  agendado
+  compareceu
+  faltou
+  pendente
+  cancelado
+  realizado
+  liberado
+}
+
+enum PendenciaMotivo {
+  agendamento
+  falta_colaborador
+  documentacao
+  afastamento
+  recusa
+  outro
+}
+
+enum AlertaTipo {
+  aso_vencendo
+  aso_vencido
+  exame_pendente
+  falta_exame
+  reagendamento
+}
+
+// ─── Tables ───
+
+/// Usuários do sistema (autenticação custom)
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  username      String    @unique @db.VarChar(100)
+  password_hash String    @db.Text
+  full_name     String?   @db.Text
+  role          AppRole   @default(gestor)
+  ativo         Boolean   @default(true)
+  created_at    DateTime  @default(now()) @db.Timestamptz
+  updated_at    DateTime  @default(now()) @updatedAt @db.Timestamptz
+
+  @@map("users")
+}
+
+/// Vinculado ao auth.users (não gerenciado pelo Prisma)
+model Profile {
+  id        String   @id @default(uuid()) @db.Uuid
+  full_name String?  @db.Text
+  email     String?  @db.Text
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  @@map("profiles")
+}
+
+model UserRole {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  role       AppRole
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  @@unique([user_id, role])
+  @@map("user_roles")
+}
+
+model Colaborador {
+  id                 String    @id @default(uuid()) @db.Uuid
+  nome               String    @db.Text
+  empresa            String?   @db.Text
+  area               String?   @db.Text
+  setor              String?   @db.Text
+  funcao             String?   @db.Text
+  matricula_sap      String?   @db.Text
+  cpf                String?   @db.Text
+  rg                 String?   @db.Text
+  pis                String?   @db.Text
+  nascimento         DateTime? @db.Date
+  escala_turno       String?   @db.Text
+  ghe                String?   @db.Text
+  periodicidade_meses Int?     @default(12)
+  unidade            String?   @db.Text
+  ultimo_exame       DateTime? @db.Date
+  proximo_exame      DateTime? @db.Date
+  dias_para_vencer   Int?
+  status             AsoStatus @default(sem_exame)
+  observacoes        String?   @db.Text
+  ativo              Boolean   @default(true)
+  created_by         String?   @db.Uuid
+  created_at         DateTime  @default(now()) @db.Timestamptz
+  updated_at         DateTime  @default(now()) @updatedAt @db.Timestamptz
+
+  exames Exame[]
+  alertas Alerta[]
+  historico ExameHistorico[]
+
+  @@index([empresa])
+  @@index([unidade])
+  @@index([setor])
+  @@index([status])
+  @@index([proximo_exame])
+  @@index([cpf])
+  @@index([nome])
+  @@map("colaboradores")
+}
+
+model Exame {
+  id               String          @id @default(uuid()) @db.Uuid
+  colaborador_id   String          @db.Uuid
+  tipo             ExameTipo       @default(periodico)
+  data_agendada    DateTime?       @db.Date
+  data_realizado   DateTime?       @db.Date
+  data_vencimento  DateTime?       @db.Date
+  data_1_etapa     DateTime?       @db.Date
+  data_2_etapa     DateTime?       @db.Date
+  justificativa_falta String?      @db.Text
+  etapa_faltou     Int?
+  status           ExameStatus     @default(agendado)
+  clinica          String?         @db.Text
+  medico           String?         @db.Text
+  motivo_pendencia PendenciaMotivo? 
+  justificativa    String?         @db.Text
+  arquivo_url      String?         @db.Text
+  created_by       String?         @db.Uuid
+  created_at       DateTime        @default(now()) @db.Timestamptz
+  updated_at       DateTime        @default(now()) @updatedAt @db.Timestamptz
+
+  colaborador Colaborador @relation(fields: [colaborador_id], references: [id], onDelete: Cascade)
+  historico   ExameHistorico[]
+
+  @@index([colaborador_id])
+  @@index([status])
+  @@index([data_agendada])
+  @@map("exames")
+}
+
+/// Histórico de eventos de exames por colaborador
+model ExameHistorico {
+  id              String   @id @default(uuid()) @db.Uuid
+  colaborador_id  String   @db.Uuid
+  exame_id        String?  @db.Uuid
+  /// agendado, compareceu_1, compareceu_2, faltou, cancelado, liberado, aso_anexado
+  evento          String   @db.VarChar(30)
+  descricao       String   @db.Text
+  /// JSON com dados extras (justificativa, etapa, clinica, etc.)
+  detalhes        Json?    @db.JsonB
+  created_at      DateTime @default(now()) @db.Timestamptz
+
+  colaborador Colaborador @relation(fields: [colaborador_id], references: [id], onDelete: Cascade)
+  exame       Exame?      @relation(fields: [exame_id], references: [id], onDelete: SetNull)
+
+  @@index([colaborador_id])
+  @@index([exame_id])
+  @@index([evento])
+  @@index([created_at])
+  @@map("exame_historico")
+}
+
+model Alerta {
+  id            String     @id @default(uuid()) @db.Uuid
+  colaborador_id String?   @db.Uuid
+  tipo          AlertaTipo
+  mensagem      String     @db.Text
+  lido          Boolean    @default(false)
+  email_enviado Boolean    @default(false)
+  created_at    DateTime   @default(now()) @db.Timestamptz
+
+  colaborador Colaborador? @relation(fields: [colaborador_id], references: [id], onDelete: Cascade)
+
+  @@index([lido])
+  @@map("alertas")
+}
+
+/// Configurações de busca de email por usuário
+model EmailConfig {
+  id                      String   @id @default(uuid()) @db.Uuid
+  user_id                 String   @db.Uuid
+  email_address           String   @db.Text
+  email_password_enc      String   @db.Text
+  imap_host               String   @default("imap.gmail.com") @db.Text
+  imap_port               Int      @default(993)
+  search_term             String?  @db.Text
+  sender_filter           String?  @db.Text
+  folder                  String   @default("INBOX") @db.Text
+  /// Configurações SMTP (envio)
+  smtp_host               String?  @db.Text
+  smtp_port               Int?     @default(587)
+  ativo                   Boolean  @default(true)
+  created_at              DateTime @default(now()) @db.Timestamptz
+  updated_at              DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  @@index([user_id])
+  @@map("email_configs")
+}
+
+/// Emails de contato salvos para envio de notificações de exames
+model EmailContato {
+  id         String   @id @default(uuid()) @db.Uuid
+  email      String   @db.Text
+  nome       String?  @db.Text
+  created_by String?  @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  @@unique([email, created_by])
+  @@index([created_by])
+  @@map("email_contatos")
+}
+
+/// Histórico de execução da rotina de email
+model EmailLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  config_id   String   @db.Uuid
+  status      String   @db.VarChar(20)
+  message     String?  @db.Text
+  emails_found Int?
+  executed_at DateTime @default(now()) @db.Timestamptz
+
+  @@index([config_id])
+  @@map("email_logs")
+}
