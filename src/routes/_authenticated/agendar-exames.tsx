@@ -145,6 +145,8 @@ function AgendarExames() {
     mutationFn: async (payload: {
       colaborador_id: string;
       data_agendada: string;
+      data_1_etapa: string;
+      data_2_etapa?: string;
       tipo: string;
       clinica?: string;
     }) => {
@@ -165,11 +167,12 @@ function AgendarExames() {
       // Registra histórico do agendamento
       const exame = result?.data;
       if (exame) {
+        const d = parseDateSafe(exame.data_agendada);
         registrarHistorico({
           colaboradorId: exame.colaborador_id,
           exameId: exame.id,
           evento: "agendado",
-          descricao: `Exame agendado para ${format(new Date(exame.data_agendada + "T12:00:00"), "dd/MM/yyyy")}`,
+          descricao: `Exame agendado para ${d ? format(d, "dd/MM/yyyy") : "data inválida"}`,
           detalhes: { tipo: exame.tipo, data_agendada: exame.data_agendada },
         });
       }
@@ -352,13 +355,11 @@ function AgendarExames() {
     const data2 = dataSegundaEtapa ? format(dataSegundaEtapa, "yyyy-MM-dd") : null;
 
     if (editingExameId) {
-      // ── Reagendamento: atualiza exame existente ──
+      // ── Reagendamento: só atualiza data agendada e clínica ──
       await updateExame.mutateAsync({
         exameId: editingExameId,
         payload: {
           data_agendada: data1,
-          data_1_etapa: data1,
-          data_2_etapa: data2,
           clinica: clinica || null,
         },
       });
@@ -374,8 +375,6 @@ function AgendarExames() {
       });
 
       if (comEnvio) {
-        console.log("[handleAgendar] comEnvio=true, result?.data?.id:", result?.data?.id, "email:", email, "emailNovo:", emailNovo);
-
         if (!result?.data?.id) {
           toast.error("Exame criado mas sem ID para enviar confirmação");
           return;
@@ -395,17 +394,13 @@ function AgendarExames() {
           return;
         }
 
-        console.log("[handleAgendar] chamando enviarConfirmacao com:", { exame_id: result.data.id, email: emailParaEnviar });
-
         enviarConfirmacao.mutate(
           { exame_id: result.data.id, email: emailParaEnviar },
           {
-            onSuccess: (data) => {
-              console.log("[enviarConfirmacao] onSuccess:", data);
+            onSuccess: () => {
               toast.success("Confirmação enviada com sucesso!");
             },
             onError: (err) => {
-              console.error("[enviarConfirmacao] onError:", err);
               toast.error(err.message);
             },
           },
@@ -444,10 +439,20 @@ function AgendarExames() {
     setClinica("");
   };
 
+  function parseDateSafe(d: string | null | undefined): Date | undefined {
+    if (!d) return undefined;
+    // Prisma serializa Date como ISO: "2024-07-24" ou "2024-07-24T00:00:00.000Z"
+    // Pega só a parte da data e garante parse correto
+    const clean = d.split("T")[0];
+    if (!clean) return undefined;
+    const dt = new Date(clean + "T12:00:00");
+    return Number.isNaN(dt.getTime()) ? undefined : dt;
+  }
+
   const handleEditExame = (ex: ExameAgendado) => {
     setEditingExameId(ex.id);
-    setDate(ex.data_agendada ? new Date(ex.data_agendada + "T12:00:00") : undefined);
-    setDataSegundaEtapa(ex.data_2_etapa ? new Date(ex.data_2_etapa + "T12:00:00") : undefined);
+    setDate(parseDateSafe(ex.data_agendada));
+    setDataSegundaEtapa(parseDateSafe(ex.data_2_etapa));
     setColaboradorId(ex.colaborador_id);
     setColaboradorNome(ex.colaborador.nome);
     setTipo(ex.tipo);

@@ -32,6 +32,7 @@ export const Route = createFileRoute("/api/exames/$id")({
           const updateData: Record<string, unknown> = {};
 
           if (body.status !== undefined) updateData.status = body.status;
+          if (body.data_agendada !== undefined) updateData.data_agendada = body.data_agendada ? new Date(body.data_agendada) : null;
           if (body.data_1_etapa !== undefined) updateData.data_1_etapa = body.data_1_etapa ? new Date(body.data_1_etapa) : null;
           if (body.data_2_etapa !== undefined) updateData.data_2_etapa = body.data_2_etapa ? new Date(body.data_2_etapa) : null;
           if (body.data_realizado !== undefined) updateData.data_realizado = body.data_realizado ? new Date(body.data_realizado) : null;
