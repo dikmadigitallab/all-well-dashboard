@@ -1,6 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+// @prisma/client é CJS — import default para compatibilidade ESM no Vercel
+import prismaPkg from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+
+const { PrismaClient } = prismaPkg;
 
 /**
  * Prisma Client para uso server-side.
