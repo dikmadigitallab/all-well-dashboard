@@ -46,8 +46,8 @@ export async function searchEmails(params: EmailSearchParams): Promise<SearchRes
     },
     logger: false,
     connectionTimeout: 20000,
-    authTimeout: 15000,
-  });
+  } as any);
+
 
   const debug: Record<string, unknown> = {};
 
