@@ -126,7 +126,8 @@ export async function searchEmails(params: EmailSearchParams): Promise<SearchRes
       const results: EmailResult[] = [];
 
       for await (const msg of client.fetch(
-        { uid: targetUids },
+        { uid: targetUids } as any,
+
         {
           uid: true,
           envelope: true,
