@@ -85,14 +85,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Plataforma para gestão de Atestados de Saúde Ocupacional, controle de exames, comparecimento, pendências e indicadores em tempo real.",
       },
-      { property: "og:title", content: "Controle de ASOs" },
+      { property: "og:title", content: "Controle de ASOs — Gestão de Saúde Ocupacional" },
       {
         property: "og:description",
         content:
-          "Gerencie ASOs, exames ocupacionais, comparecimento, pendências e indicadores em um só lugar.",
+          "Plataforma para gestão de Atestados de Saúde Ocupacional, controle de exames, comparecimento, pendências e indicadores em tempo real.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Controle de ASOs — Gestão de Saúde Ocupacional" },
+      { name: "twitter:description", content: "Plataforma para gestão de Atestados de Saúde Ocupacional, controle de exames, comparecimento, pendências e indicadores em tempo real." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ab4454fb-b6d4-40bd-a972-13543e3dd353/id-preview-51f05d0d--f59ac927-1f05-4247-a6e1-b06e6d4c0379.lovable.app-1784951229587.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ab4454fb-b6d4-40bd-a972-13543e3dd353/id-preview-51f05d0d--f59ac927-1f05-4247-a6e1-b06e6d4c0379.lovable.app-1784951229587.png" },
     ],
     links: [
       {
