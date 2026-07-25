@@ -41,5 +41,10 @@ export function getPrisma(): PrismaClient {
   return _prisma;
 }
 
-// Singleton module-level (recriado em cada hot-reload)
-export const prisma = getPrisma();
+// Proxy lazy — só cria o client na PRIMEIRA operação (não na importação)
+// Isso evita que o SSR quebre se o banco estiver indisponível no momento do load
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop: keyof PrismaClient, receiver) {
+    return Reflect.get(getPrisma(), prop, receiver);
+  },
+});

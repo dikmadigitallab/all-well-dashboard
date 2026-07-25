@@ -70,3 +70,19 @@
 
 **Arquivos alterados:**
 - `src/routes/_authenticated/colaboradores/index.tsx`
+
+## 2026-07-24 — SSR 500 no Vercel: Prisma eager load quebrava landing page
+
+**Problema:** Toda request para `/` no Vercel retornava 500 com `h3 swallowed SSR error: {"status":500,"unhandled":true,"message":"HTTPError"}`.
+
+**Causa raiz:** `prisma.server.ts` exportava `const prisma = getPrisma()` no módulo — isso executava `createPrisma()` **no momento da importação** do módulo. Como o bundle SSR carrega todas as rotas (incluindo API) num único módulo (`router-*.mjs`), a inicialização do PrismaClient + Pool pg rodava a cada SSR. Se `DATABASE_URL` não estava disponível ou a conexão falhava, o módulo quebrava, derrubando o SSR inteiro.
+
+**Solução:**
+1. `prisma.server.ts` — Substituído `export const prisma = getPrisma()` por um **Proxy lazy** que só chama `getPrisma()` no primeiro acesso a uma propriedade
+2. `server.ts` — Melhorada mensagem de log no `normalizeCatastrophicSsrResponse` para diferenciar erro capturado de erro genérico
+3. `error-capture.ts` — Adicionado fallback `process.on('uncaughtException'/'unhandledRejection')` para ambientes Node.js (Vercel serverless)
+
+**Arquivos alterados:**
+- `src/lib/prisma.server.ts`
+- `src/server.ts`
+- `src/lib/error-capture.ts`
