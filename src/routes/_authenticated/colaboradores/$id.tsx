@@ -471,11 +471,12 @@ function EditColab() {
                       )}
                     </div>
                     <div className="text-sm mt-0.5">{entry.descricao}</div>
-                    {entry.detalhes?.justificativa && (
+                    {entry.detalhes?.justificativa != null && (
                       <div className="text-xs text-muted-foreground mt-0.5 italic">
-                        Justificativa: {entry.detalhes.justificativa as string}
+                        Justificativa: {String(entry.detalhes.justificativa)}
                       </div>
                     )}
+
                     <div className="text-[10px] text-muted-foreground mt-1">
                       {new Date(entry.created_at).toLocaleString("pt-BR")}
                     </div>
