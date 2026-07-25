@@ -25,9 +25,12 @@ export default defineConfig({
         "prisma",
         "@prisma/adapter-pg",
         "pg",
+        "tslib",
       ],
     },
-    // tslib é traçado (copiado) para node_modules da função — não inlinear para
-    // evitar conflito com __esModule do tslib que quebra o __toESM do bundler
+    // tslib é externalizado (não traçado) + forçado no package.json da função
+    // para que o Vercel instale via npm (garantindo o pacote completo).
+    // O inline (noExternals) quebra porque o __esModule do tslib conflita
+    // com o __toESM do bundler.
   },
 });

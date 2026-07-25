@@ -1,15 +1,19 @@
-# Checkpoint — 2026-07-24
+# Checkpoint — 2026-07-25
 
 ## Estado Atual
 - Build local: ✅ passa com `npm run build`
-- tslib: traçado + complementado pelo script pós-build (com `tslib.es6.mjs`)
-- `.prisma`: removido do `package.json` da função
-- Pronto para deploy na Vercel
+- Estratégia: `tslib` externalizado + forçado no `package.json` da função
+- `node_modules/tslib/` removido da função (Vercel instalará via npm)
+- `.prisma` removido do `package.json` da função
 
 ## Últimas Alterações
-- `vite.config.ts`: removido `noExternals`/`traceDeps` do tslib; adicionado `.prisma` ao externals
-- `package.json`: build command com postbuild script; tslib como dependência direta
-- `scripts/clean-function-package.mjs`: limpa `.prisma` + completa tslib + verifica integridade
+- `vite.config.ts`: adicionado `"tslib"` ao `externals.external`
+- `scripts/clean-function-package.mjs`: agora garante `tslib` no package.json e remove node_modules/tslib/
 
-## Problemas Conhecidos Ainda Não Testados
-- Deploy na Vercel ainda não foi validado com estas alterações
+## Problema Principal
+- `ERR_MODULE_NOT_FOUND: Cannot find package 'tslib'` no runtime da Vercel
+- Hipótese: Vercel recria node_modules do zero, ignorando o trace do Nitro
+- Fix atual: package.json limpo + tslib listado → Vercel instala via npm
+
+## A Fazer
+- [ ] Commitar, push e testar deploy na Vercel
