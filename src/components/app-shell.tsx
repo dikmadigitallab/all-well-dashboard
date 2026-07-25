@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/notification-bell";
 import { cn } from "@/lib/utils";
-import { NotificationBell } from "@/components/notification-bell";
+// NotificationBell already imported above
 
 const nav: Array<{ to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean }> =
   [
