@@ -5,12 +5,25 @@
 //     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { resolve } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+  },
+  vite: {
+    resolve: {
+      alias: {
+        // Redireciona tslib para o ESM puro (.mjs), evitando o wrapper CJS
+        // que causava conflito de __esModule com o __toESM do bundler.
+        tslib: resolve(__dirname, "node_modules/tslib/tslib.es6.mjs"),
+      },
+    },
   },
   nitro: {
     // Preset para deploy na Vercel (Node.js runtime)
@@ -25,12 +38,7 @@ export default defineConfig({
         "prisma",
         "@prisma/adapter-pg",
         "pg",
-        "tslib",
       ],
     },
-    // tslib é externalizado (não traçado) + forçado no package.json da função
-    // para que o Vercel instale via npm (garantindo o pacote completo).
-    // O inline (noExternals) quebra porque o __esModule do tslib conflita
-    // com o __toESM do bundler.
   },
 });
