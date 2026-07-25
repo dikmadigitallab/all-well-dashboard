@@ -2,7 +2,7 @@ import { o as __toESM, t as __commonJSMin } from "../../_runtime.mjs";
 import { i as require_react } from "../dnd-kit__accessibility+react.mjs";
 import { g as require_react_dom } from "../@dnd-kit/core+[...].mjs";
 import { t as composeEventHandlers } from "../radix-ui__primitive.mjs";
-import { __assign, __rest, __spreadArray } from "../../node_modules/tslib/tslib.es6.mjs";
+import { __assign, __rest, __spreadArray } from "tslib";
 //#region node_modules/react/cjs/react-jsx-runtime.production.js
 /**
 * @license React

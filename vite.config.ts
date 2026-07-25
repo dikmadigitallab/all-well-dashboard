@@ -5,10 +5,6 @@
 //     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
-import { resolve } from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
   tanstackStart: {
@@ -16,20 +12,12 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
-  vite: {
-    resolve: {
-      alias: {
-        // Redireciona tslib para o ESM puro (.mjs), evitando o wrapper CJS
-        // que causava conflito de __esModule com o __toESM do bundler.
-        tslib: resolve(__dirname, "node_modules/tslib/tslib.es6.mjs"),
-      },
-    },
-  },
   nitro: {
     // Preset para deploy na Vercel (Node.js runtime)
     preset: "vercel",
-    // Externaliza @prisma/client para evitar que o bundler quebre as requires
-    // dinâmicas para .prisma/client (gerado pelo prisma generate)
+    // Externaliza pacotes que o Vercel deve instalar via npm install na função.
+    // @prisma/client: evita que o bundler quebre requires dinâmicas para .prisma/client
+    // tslib: utilizado por várias libs (radix, supabase, etc), Vercel instala do npm
     externals: {
       external: [
         "@prisma/client",
@@ -38,6 +26,7 @@ export default defineConfig({
         "prisma",
         "@prisma/adapter-pg",
         "pg",
+        "tslib",
       ],
     },
   },
