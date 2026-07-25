@@ -25,6 +25,9 @@ export default defineConfig({
         "@prisma/adapter-pg",
         "pg",
       ],
+      traceExclude: [
+        "tslib",
+      ],
     },
   },
 });
