@@ -1,12 +1,11 @@
-// Pós-build do deploy Vercel:
-// 1. Remove dependências inválidas do package.json da função (.prisma)
-// 2. Copia tslib completo da raiz para node_modules/ da função
-//    (o trace do Nitro não copia tslib quando está em externals.external,
-//     e o Vercel também não instala — então fazemos manualmente)
-// 3. Garante tslib no package.json como redundância
+// Pós-build do deploy Vercel.
+// Garante que tslib seja encontrável em runtime na Vercel via duas estratégias:
+// 1. Copia tslib completo da raiz para node_modules/tslib/ da função
+// 2. Substitui `from "tslib"` por caminho relativo nos arquivos _libs/*.mjs
+// 3. Remove dependências inválidas (.prisma) do package.json
 
 import { readFileSync, writeFileSync, existsSync, copyFileSync, mkdirSync, readdirSync, statSync } from "fs";
-import { join, dirname } from "path";
+import { join, dirname, relative } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -27,67 +26,85 @@ try {
 
   for (const dep of Object.keys(deps)) {
     if (dep.startsWith(".") || dep === "") {
-      console.log(`🧹 Removendo dependência inválida: "${dep}": "${deps[dep]}"`);
+      console.log(`🧹 Removendo dependência inválida: "${dep}"`);
       delete deps[dep];
       changed = true;
     }
   }
 
-  // Garante tslib no package.json
   if (!deps.tslib) {
     deps.tslib = tslibVersion;
-    console.log(`📦 Adicionando tslib@${tslibVersion} ao package.json`);
+    console.log(`📦 tslib@${tslibVersion} no package.json`);
     changed = true;
   }
 
   if (changed) {
     funcPkg.dependencies = deps;
     writeFileSync(funcPkgPath, JSON.stringify(funcPkg, null, 2) + "\n");
-    console.log("✅ package.json atualizado");
-  } else {
-    console.log("✅ package.json OK");
   }
+  console.log("✅ package.json OK");
 } catch (err) {
-  console.error(`❌ Erro no package.json: ${err.message}`);
+  console.error(`❌ package.json: ${err.message}`);
 }
 
-// ─── Etapa 2: Copiar tslib completo para node_modules/ da função ───────────
-// O Nitro NÃO copia pacotes que estão em externals.external.
-// O Vercel também não instala via npm (usa o node_modules como está).
-// Portanto, copiamos manualmente o tslib completo da raiz.
+// ─── Etapa 2: Copiar tslib completo ─────────────────────────────────────────
 
 const TSLIB_SRC = join(ROOT_NM, "tslib");
 const TSLIB_DST = join(FUNC_NM, "tslib");
 
 function copyRecursive(src, dst) {
   if (!existsSync(src)) return false;
-  const entries = readdirSync(src);
   if (!existsSync(dst)) mkdirSync(dst, { recursive: true });
-  for (const entry of entries) {
-    const srcPath = join(src, entry);
-    const dstPath = join(dst, entry);
-    if (statSync(srcPath).isDirectory()) {
-      copyRecursive(srcPath, dstPath);
-    } else {
-      copyFileSync(srcPath, dstPath);
-    }
+  for (const entry of readdirSync(src)) {
+    const s = join(src, entry);
+    const d = join(dst, entry);
+    statSync(s).isDirectory() ? copyRecursive(s, d) : copyFileSync(s, d);
   }
   return true;
 }
 
 if (existsSync(TSLIB_SRC)) {
   copyRecursive(TSLIB_SRC, TSLIB_DST);
-  console.log(`📋 tslib copiado completo (${readdirSync(TSLIB_SRC).length} arquivos) → node_modules/tslib/`);
-} else {
-  console.log("⚠️  tslib não encontrado no node_modules raiz");
+  const count = readdirSync(TSLIB_DST).length;
+  console.log(`📋 tslib copiado (${count} arquivos) → node_modules/tslib/`);
 }
 
-// ─── Etapa 3: Verificar resultado ──────────────────────────────────────────
+// ─── Etapa 3: Substituir imports "tslib" por caminho relativo ───────────────
+// Isso GARANTE que o Node.js encontre o módulo mesmo sem resolução de pacotes
 
-const tslibFiles = existsSync(TSLIB_DST) ? readdirSync(TSLIB_DST) : [];
-const hasESSentials = tslibFiles.includes("tslib.es6.mjs") && tslibFiles.includes("package.json");
-if (hasESSentials) {
-  console.log("✅ tslib pronto (tslib.es6.mjs OK, package.json OK)");
+const TSLIB_ENTRY = "tslib.es6.mjs";
+let patchedCount = 0;
+
+function patchTslibImports(dirPath) {
+  for (const entry of readdirSync(dirPath)) {
+    const fullPath = join(dirPath, entry);
+    if (statSync(fullPath).isDirectory()) {
+      if (entry !== "node_modules") patchTslibImports(fullPath);
+    } else if (entry.endsWith(".mjs") || entry.endsWith(".js")) {
+      const content = readFileSync(fullPath, "utf-8");
+      if (!content.includes('from "tslib"') && !content.includes("from 'tslib'")) continue;
+
+      // Calcula caminho relativo do arquivo até node_modules/tslib/tslib.es6.mjs
+      const relativePath = relative(dirname(fullPath), join(FUNC_NM, "tslib", TSLIB_ENTRY));
+      const normalized = relativePath.replace(/\\/g, "/");
+
+      const newContent = content
+        .replace(/from\s+"tslib"/g, `from "${normalized}"`)
+        .replace(/from\s+'tslib'/g, `from '${normalized}'`);
+
+      if (newContent !== content) {
+        writeFileSync(fullPath, newContent, "utf-8");
+        patchedCount++;
+        console.log(`🔧 ${join(relative(FUNC_DIR, dirname(fullPath)), entry)} → from "${normalized}"`);
+      }
+    }
+  }
+}
+
+patchTslibImports(FUNC_DIR);
+
+if (patchedCount > 0) {
+  console.log(`✅ ${patchedCount} arquivo(s) com imports de tslib corrigidos para caminho relativo`);
 } else {
-  console.error(`❌ tslib incompleto na função: ${tslibFiles.join(", ")}`);
+  console.log("✅ Nenhum import de tslib para corrigir");
 }
