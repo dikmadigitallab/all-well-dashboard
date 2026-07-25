@@ -16,8 +16,6 @@ export default defineConfig({
     // Preset para deploy na Vercel (Node.js runtime)
     preset: "vercel",
     // Externaliza pacotes que o Vercel deve instalar via npm install na função.
-    // @prisma/client: evita que o bundler quebre requires dinâmicas para .prisma/client
-    // tslib: utilizado por várias libs (radix, supabase, etc), Vercel instala do npm
     externals: {
       external: [
         "@prisma/client",
@@ -29,5 +27,6 @@ export default defineConfig({
         "tslib",
       ],
     },
-  },
+  } as any,
 });
+
