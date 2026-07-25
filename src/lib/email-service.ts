@@ -66,14 +66,15 @@ export async function searchEmails(params: EmailSearchParams): Promise<SearchRes
       const unseenQuery: Record<string, unknown> = { seen: false };
       debug.unseenQuery = unseenQuery;
 
-      const unseenUids = await client.search(unseenQuery);
+      const unseenUids = ((await client.search(unseenQuery as any)) || []) as number[];
       debug.unseenUidsCount = unseenUids.length;
       debug.unseenUids = unseenUids.slice(0, 20);
 
       if (unseenUids.length === 0) {
         // Tenta buscar TUDO (inclusive lidos) pra ver se há emails na caixa
-        const allUids = await client.search({ uid: true });
+        const allUids = ((await client.search({ all: true } as any)) || []) as number[];
         debug.allUidsCount = allUids.length;
+
 
         return {
           success: true,
