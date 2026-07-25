@@ -8,14 +8,10 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
   tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
     server: { entry: "server" },
   },
   nitro: {
-    // Preset para deploy na Vercel (Node.js runtime)
     preset: "vercel",
-    // Externaliza pacotes que o Vercel deve instalar via npm install na função.
     externals: {
       external: [
         "@prisma/client",
@@ -28,5 +24,11 @@ export default defineConfig({
       ],
     },
   } as any,
-});
+  vite: {
+    ssr: {
+      external: ["@prisma/client", ".prisma/client", "@prisma/adapter-pg", "pg"],
+    },
+  },
+} as any);
+
 
