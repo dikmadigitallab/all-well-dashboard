@@ -1,5 +1,24 @@
 # Memorias
 
+## Sessão: 2026-07-27 — Fix build: @dnd-kit packages não instalados
+
+### Problema
+- Página "indisponível" no Lovable — build falhava
+- `node_modules/@dnd-kit/` existia mas estava VAZIO — nenhum subpacote instalado
+- Erro: `Rolldown failed to resolve import "@dnd-kit/core" from "kanban-exames.tsx"`
+
+### Correção
+- Executado `npm install @dnd-kit/core @dnd-kit/modifiers @dnd-kit/sortable @dnd-kit/utilities`
+- 102 pacotes instalados (incluindo dependências internas do @dnd-kit)
+- Build local: ✅ passa sem erros
+- `@dnd-kit/core@6.3.1`, `@dnd-kit/modifiers@9.0.0`, `@dnd-kit/sortable@10.0.0`, `@dnd-kit/utilities@3.2.2`
+
+### Causa Raiz
+Provavelmente os pacotes foram adicionados ao `package.json` mas o `npm install` não foi executado (ou foi executado antes da adição e depois nunca mais), deixando o diretório `@dnd-kit` vazio.
+
+### Autoria
+VIBECODE
+
 ## Sessão: 2026-07-25 — Fix deploy Vercel (5ª tentativa)
 
 ### Histórico

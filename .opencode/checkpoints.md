@@ -23,5 +23,16 @@
 4. **❌ `WebAssembly.Module() disallowed by embedder`**: Prisma v7 usava WASM incompatível com Lovable. Downgrade para Prisma v6 (engine binário).
 5. **❌ Engine binary incompatível**: `linux-musl-openssl-3.0.x` (Alpine) não roda no Vercel (Amazon Linux). Agora `rhel-openssl-3.0.x`.
 
+## Sessão Atual (2026-07-27) — Fix build @dnd-kit
+
+### Problema Resolvido
+- `@dnd-kit/core`, `@dnd-kit/modifiers`, `@dnd-kit/sortable`, `@dnd-kit/utilities` **não estavam instalados**
+- Diretório `node_modules/@dnd-kit/` vazio → build falhava → página indisponível no Lovable
+- `npm install` corrigiu: 102 pacotes adicionados
+
+### Build
+- ✅ `npm run build` passa sem erros
+
 ## A Fazer
 - [ ] Testar login no Lovable (após commit + push)
+- [ ] Fazer commit + push das mudanças (package-lock.json + node_modules)
