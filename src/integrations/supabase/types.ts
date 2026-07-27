@@ -246,6 +246,39 @@ export type Database = {
         }
         Relationships: []
       }
+      users: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          full_name: string | null
+          id: string
+          password_hash: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          password_hash: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          password_hash?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
