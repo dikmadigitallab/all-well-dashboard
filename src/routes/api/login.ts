@@ -3,9 +3,31 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Client } from "pg";
 import { verifyPassword, createToken } from "@/lib/auth.server";
 
+function getDatabaseConnectionString() {
+  const source =
+    process.env.DATABASE_POOL_URL ||
+    process.env.SUPABASE_DB_URL ||
+    process.env.DATABASE_URL;
+
+  if (!source) throw new Error("DATABASE_URL não configurado");
+
+  const poolPort = process.env.DATABASE_POOL_PORT;
+
+  try {
+    const url = new URL(source);
+    if (poolPort) {
+      url.port = poolPort;
+    } else if (url.hostname.includes("pooler.supabase.com")) {
+      url.port = "6543";
+    }
+    return url.toString();
+  } catch {
+    return source;
+  }
+}
+
 async function queryUser(username: string) {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) throw new Error("DATABASE_URL não configurado");
+  const connectionString = getDatabaseConnectionString();
 
   const ssl =
     process.env.DATABASE_SSL === "false" ? false : { rejectUnauthorized: false };
