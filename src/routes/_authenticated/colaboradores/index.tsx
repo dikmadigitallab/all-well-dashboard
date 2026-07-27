@@ -1,10 +1,10 @@
 /* eslint-disable prettier/prettier */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import { Plus, Download, Search, ArrowUpDown, ArrowUp, ArrowDown, FileText, Loader2, CheckSquare } from "lucide-react";
+import { Plus, Download, Search, ArrowUpDown, ArrowUp, ArrowDown, FileText, Loader2, CheckSquare, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { authFetch } from "@/lib/custom-auth";
@@ -48,6 +48,8 @@ function ColabList() {
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [gerando, setGerando] = useState(false);
+  const [page, setPage] = useState(1);
+  const perPage = 8;
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["colaboradores-list"],
@@ -86,8 +88,12 @@ function ColabList() {
     });
   };
 
+  // Reseta página quando filtros ou ordenação mudam
+  const resetPage = useCallback(() => setPage(1), []);
+  useEffect(() => resetPage(), [q, empresa, area, status, proxExame, sortKey, sortDir, resetPage]);
+
   const toggleSelectAll = () => {
-    const visible = sorted.slice(0, 500).map((r) => r.id);
+    const visible = paginado.map((r) => r.id);
     const allSelected = visible.every((id) => selectedIds.has(id));
     if (allSelected) {
       setSelectedIds((prev) => {
@@ -167,6 +173,12 @@ function ColabList() {
     return arr;
   }, [filtered, sortKey, sortDir]);
 
+  const totalPages = Math.max(1, Math.ceil(sorted.length / perPage));
+  const paginado = useMemo(
+    () => sorted.slice((page - 1) * perPage, page * perPage),
+    [sorted, page, perPage],
+  );
+
   const exportar = () => {
     const data = filtered.map((r) => ({
       Nome: r.nome,
@@ -202,7 +214,9 @@ function ColabList() {
       <PageHeader
         title="Colaboradores"
         description={
-          isLoading ? "Carregando..." : `${filtered.length} de ${rows.length} colaboradores`
+          isLoading
+            ? "Carregando..."
+            : `${filtered.length} colaboradores · Página ${page} de ${totalPages}`
         }
         actions={
           <>
@@ -296,7 +310,7 @@ function ColabList() {
               <tr>
                 <th className="px-3 py-3 w-10">
                   <Checkbox
-                    checked={sorted.slice(0, 500).length > 0 && sorted.slice(0, 500).every((r) => selectedIds.has(r.id))}
+                    checked={paginado.length > 0 && paginado.every((r) => selectedIds.has(r.id))}
                     onCheckedChange={toggleSelectAll}
                   />
                 </th>
@@ -332,7 +346,7 @@ function ColabList() {
               </tr>
             </thead>
             <tbody>
-              {sorted.slice(0, 500).map((r) => {
+              {paginado.map((r) => {
                 const b = statusBadge(r.status);
                 return (
                   <tr key={r.id} className="border-t border-border hover:bg-muted/30">
@@ -377,9 +391,61 @@ function ColabList() {
             </tbody>
           </table>
         </div>
-        {filtered.length > 500 && (
-          <div className="px-4 py-3 text-xs text-muted-foreground border-t border-border">
-            Mostrando primeiros 500 resultados. Refine os filtros para ver mais.
+        {/* Paginação */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+            <div className="text-xs text-muted-foreground">
+              {(page - 1) * perPage + 1}–
+              {Math.min(page * perPage, sorted.length)} de {sorted.length} resultados
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {(() => {
+                const pages: (number | string)[] = [];
+                const delta = 2;
+                const start = Math.max(1, page - delta);
+                const end = Math.min(totalPages, page + delta);
+                if (start > 1) pages.push(1);
+                if (start > 2) pages.push("…");
+                for (let i = start; i <= end; i++) pages.push(i);
+                if (end < totalPages - 1) pages.push("…");
+                if (end < totalPages) pages.push(totalPages);
+                return pages.map((p, i) =>
+                  typeof p === "string" ? (
+                    <span key={`ellipsis-${i}`} className="px-1 text-xs text-muted-foreground">
+                      …
+                    </span>
+                  ) : (
+                    <Button
+                      key={p}
+                      variant={p === page ? "default" : "ghost"}
+                      size="sm"
+                      className="h-7 min-w-[28px] px-1 text-xs"
+                      onClick={() => setPage(p)}
+                    >
+                      {p}
+                    </Button>
+                  ),
+                );
+              })()}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         )}
         {!isLoading && filtered.length === 0 && (

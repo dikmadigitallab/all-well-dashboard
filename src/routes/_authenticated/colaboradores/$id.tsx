@@ -36,6 +36,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { Colaborador } from "@/lib/colaboradores";
+import { gerarASO } from "@/lib/reports";
+
 
 interface HistoricoEntry {
   id: string;
@@ -229,6 +231,11 @@ function EditColab() {
                 Voltar
               </Link>
             </Button>
+            {!isNew && (
+              <Button variant="outline" size="sm" onClick={() => gerarASO(form as Colaborador)}>
+                <FileText className="h-4 w-4 mr-2" />Gerar ASO (PDF)
+              </Button>
+            )}
             {!isNew && isAdmin && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -464,11 +471,12 @@ function EditColab() {
                       )}
                     </div>
                     <div className="text-sm mt-0.5">{entry.descricao}</div>
-                    {entry.detalhes?.justificativa && (
+                    {entry.detalhes?.justificativa != null && (
                       <div className="text-xs text-muted-foreground mt-0.5 italic">
-                        Justificativa: {entry.detalhes.justificativa as string}
+                        Justificativa: {String(entry.detalhes.justificativa)}
                       </div>
                     )}
+
                     <div className="text-[10px] text-muted-foreground mt-1">
                       {new Date(entry.created_at).toLocaleString("pt-BR")}
                     </div>

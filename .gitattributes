@@ -1,0 +1,9 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# .env files should never be tracked
+.env linguist-generated=true
+.env.dev linguist-generated=true
+.env.prod linguist-generated=true
+.env.local linguist-generated=true
+.env.staging linguist-generated=true

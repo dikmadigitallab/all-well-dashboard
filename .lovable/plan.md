@@ -1,60 +1,60 @@
+## Escopo proposto (5 módulos)
 
-## Escopo desta 1ª entrega (MVP priorizado)
+Como é um pacote grande, sugiro entregar em **3 iterações sequenciais**, cada uma testável de forma independente. Confirme e eu executo — ou me diga se prefere reordenar/reduzir.
 
-1. **Backend Lovable Cloud** com autenticação e perfis (Admin/SESMT vs Gestor).
-2. **Cadastro de colaboradores** com todos os campos da planilha (nome, empresa, área, setor, função, matrícula SAP, CPF, RG, PIS, nascimento, escala/turno, GHE, periodicidade, unidade, último exame, próximo exame, vencimento).
-3. **Importação da planilha Excel** (upload .xlsx → inserção em lote com deduplicação por CPF).
-4. **Dashboard gerencial** com KPIs (Em dia / A vencer 30d / Vencido), gráficos (evolução, distribuição por unidade/empresa/setor) e filtros por empresa, unidade, setor, cargo e período (semanal/mensal/trimestral/anual).
-5. **Listagem/edição/CRUD** de colaboradores com filtros, busca e status calculado automaticamente com base em `próximo exame`.
-6. **Exportação** da lista filtrada em Excel/CSV.
+---
 
-## Arquitetura preparada para as próximas etapas
+### Iteração 1 — Agendamento, Convocações, Comparecimento e Pendências
 
-Tabelas e estrutura já criadas prevendo:
-- `exames` (histórico completo por colaborador, tipo admissional/periódico/demissional/retorno, agendamento, comparecimento, justificativa, ASO PDF).
-- `pendencias` (motivo tipado: agendamento, falta, documentação, afastamento, outro).
-- `convocacoes` (agenda + status de comparecimento).
-- `alertas` (fila para notificação in-app + e-mail).
-- `audit_log` para rastreabilidade.
-- Enum de motivos, tipos de exame e status, para viabilizar rapidamente comparecimento, pendências, alertas por e-mail (Lovable Emails), preenchimento de formulários e relatórios em PDF nas próximas iterações.
+**Backend (uma migration):**
+- Tabela `convocacoes` (colaborador, exame_id, data, local, status: convocado/confirmado/compareceu/faltou/reagendar, observação).
+- Reaproveitar `exames` já existente para o histórico e usar `pendencias` derivadas de `exames.status = pendente` + `motivo_pendencia` (já modelado).
+- View/funções auxiliares para KPIs de pendências.
+- RLS: admin/SESMT escreve; gestor lê.
 
-## Perfis e permissões
+**Frontend (novas rotas):**
+- `/_authenticated/exames` — agenda: cria exame agendado, marca comparecimento (compareceu/faltou + justificativa opcional), reagendar. Filtros por período/empresa/unidade.
+- `/_authenticated/pendencias` — painel com contadores por motivo (agendamento, falta, documentação, afastamento, recusa, outro), gráfico de pizza + lista filtrável, ação "resolver pendência".
+- No detalhe do colaborador (`/colaboradores/:id`): aba "Histórico de exames" listando todos os `exames` do colaborador com status/tipo/data.
 
-- **Admin / SESMT**: CRUD total, importação, dashboards, relatórios.
-- **Gestor**: somente leitura (dashboards, listas, relatórios).
-- Roles armazenadas em tabela `user_roles` separada + função `has_role()` (padrão seguro contra escalonamento).
+---
 
-## Stack técnica
+### Iteração 2 — Alertas automáticos por e-mail + notificação no painel
 
-- TanStack Start + React + Tailwind + shadcn.
-- Lovable Cloud (Supabase) — Postgres + Auth + Storage.
-- Recharts para gráficos.
-- SheetJS (xlsx) para import/export.
-- Design corporativo sóbrio (azul-petróleo + neutros), foco em densidade de dados e legibilidade.
+- Configurar Lovable Emails (domínio + template `aso-vencimento`).
+- Server function diária (cron `pg_cron`) que:
+  - Recalcula alertas em `alertas` (ASO vencido, a vencer em 30d, exame pendente > 7d).
+  - Dispara e-mail para admin/SESMT e gestores agrupando por unidade.
+- Sino de notificação no header (contador de `alertas` não lidos + dropdown com lista).
+- Página `/_authenticated/alertas` com lista completa, filtros e ação "marcar como lido".
 
-## Estrutura de rotas
+> Requer domínio de e-mail próprio. Vou pedir o setup na hora da iteração 2.
 
-```text
-/auth                       — login / cadastro (público)
-/                           — landing pública com CTA "Entrar"
-/_authenticated/dashboard   — KPIs + gráficos + filtros
-/_authenticated/colaboradores           — lista + busca + filtros + export
-/_authenticated/colaboradores/novo      — cadastro (Admin)
-/_authenticated/colaboradores/:id       — detalhes + edição (Admin)
-/_authenticated/importar                — upload da planilha (Admin)
-```
+---
 
-## Fora desta entrega (próximas etapas)
+### Iteração 3 — PDF de formulário de exame + Relatórios exportáveis
 
-Módulos previstos na arquitetura mas construídos nas próximas iterações, conforme priorização: agendamento e convocações, registro de comparecimento/faltas com justificativas, painel de pendências, alertas automáticos por e-mail (Lovable Emails), preenchimento automático de formulários (PDF), relatórios em PDF, histórico completo por colaborador.
+- **Formulário de exame em PDF**: botão em `/colaboradores/:id` → gera PDF preenchido (dados do colaborador, tipo de exame, GHE, riscos, campos para clínica preencher). Usa `pdf-lib` no lado servidor.
+- **Relatórios PDF**:
+  - Relatório gerencial (KPIs, gráficos, distribuição por unidade/empresa).
+  - Relatório por unidade/empresa (lista de colaboradores com status).
+  - Relatório de pendências.
+- Mantém o export Excel já existente na lista de colaboradores.
+- Botões "Exportar PDF" em Dashboard, Colaboradores e Pendências.
 
-## Etapas de execução
+---
 
-1. Ativar Lovable Cloud.
-2. Migrations: enum `app_role`, tabelas `profiles`, `user_roles`, `colaboradores`, `exames`, `pendencias`, `convocacoes`, `alertas`, função `has_role`, RLS + GRANTs.
-3. Design system (tokens azul-petróleo/neutros) e layout autenticado com sidebar.
-4. Auth (email/senha) + `_authenticated` layout + hook `useRole`.
-5. Módulo colaboradores (lista, filtros, CRUD, export).
-6. Importador de Excel.
-7. Dashboard com KPIs e gráficos.
-8. Landing pública + rota `/auth`.
+### Detalhes técnicos
+
+- Server functions com `requireSupabaseAuth`, escritas admin-only via `has_role`.
+- PDFs gerados server-side (`pdf-lib`) e devolvidos como `Response` via server route `/api/pdf/*`.
+- Cron de alertas via `pg_cron` + `pg_net` chamando `/api/public/hooks/run-alertas` com verificação por `apikey`.
+- Gráficos com Recharts (já instalado).
+
+---
+
+### O que faço agora
+
+Se você aprovar, começo pela **Iteração 1** completa nesta rodada (agendamento + comparecimento + pendências). Iterações 2 e 3 vêm nas próximas mensagens, para manter o entregável testável a cada passo.
+
+Confirma? Se quiser mudar a ordem (ex.: PDFs antes de alertas) ou tirar algo do escopo, me diga.

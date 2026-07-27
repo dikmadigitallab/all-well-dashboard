@@ -14,6 +14,11 @@ if (typeof globalThis.addEventListener === "function") {
     record((event as PromiseRejectionEvent).reason),
   );
 }
+// Fallback para Node.js (Vercel serverless)
+if (typeof process !== "undefined" && typeof process.on === "function") {
+  process.on("uncaughtException", (err) => record(err));
+  process.on("unhandledRejection", (reason) => record(reason));
+}
 
 export function consumeLastCapturedError(): unknown {
   if (!lastCapturedError) return undefined;

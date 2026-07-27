@@ -1,14 +1,14 @@
-// POST /api/login — autenticação contra banco de dados
+// POST /api/login — autenticação via Prisma (usa o pool compartilhado, sem criar conexões avulsas)
 import { createFileRoute } from "@tanstack/react-router";
-import { prisma } from "@/lib/prisma.server";
 import { verifyPassword, createToken } from "@/lib/auth.server";
+import { prisma } from "@/lib/prisma.server";
 
 export const Route = createFileRoute("/api/login")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         try {
-          const body = await request.json();
+          const body = await request.json().catch(() => ({}));
           const { username, password } = body || {};
 
           if (!username || !password) {
@@ -18,9 +18,9 @@ export const Route = createFileRoute("/api/login")({
             );
           }
 
-          // Busca usuário no banco
           const user = await prisma.user.findUnique({
-            where: { username },
+            where: { username: String(username) },
+            select: { id: true, username: true, password_hash: true, full_name: true, role: true, ativo: true },
           });
 
           if (!user || !user.ativo) {
@@ -30,8 +30,7 @@ export const Route = createFileRoute("/api/login")({
             );
           }
 
-          // Verifica senha
-          const valid = await verifyPassword(password, user.password_hash);
+          const valid = await verifyPassword(String(password), user.password_hash);
           if (!valid) {
             return Response.json(
               { ok: false, error: "Usuário ou senha inválidos" },
@@ -39,7 +38,6 @@ export const Route = createFileRoute("/api/login")({
             );
           }
 
-          // Gera token JWT
           const token = await createToken({
             id: user.id,
             username: user.username,
@@ -59,7 +57,11 @@ export const Route = createFileRoute("/api/login")({
           });
         } catch (err) {
           console.error("[login]", err);
-          return Response.json({ ok: false, error: "Erro interno do servidor" }, { status: 500 });
+          const msg = err instanceof Error ? err.message : String(err);
+          return Response.json(
+            { ok: false, error: `Erro interno: ${msg}` },
+            { status: 500 },
+          );
         }
       },
     },

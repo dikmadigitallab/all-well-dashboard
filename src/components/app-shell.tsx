@@ -3,8 +3,9 @@ import type { ReactNode } from "react";
 import { LayoutDashboard, Users, Upload, LogOut, ShieldCheck, Eye, FileText, Mail, CalendarPlus, Columns3 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/notification-bell";
+import { cn } from "@/lib/utils";
+// NotificationBell already imported above
 
 const nav: Array<{ to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean }> =
   [
@@ -96,7 +97,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <main className="flex-1 min-w-0">{children}</main>
+      <main className="flex-1 min-w-0">
+        <div className="flex items-center justify-end gap-2 px-8 pt-4">
+          <NotificationBell />
+        </div>
+        {children}
+      </main>
     </div>
   );
 }

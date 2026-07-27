@@ -46,8 +46,8 @@ export async function searchEmails(params: EmailSearchParams): Promise<SearchRes
     },
     logger: false,
     connectionTimeout: 20000,
-    authTimeout: 15000,
-  });
+  } as any);
+
 
   const debug: Record<string, unknown> = {};
 
@@ -66,14 +66,15 @@ export async function searchEmails(params: EmailSearchParams): Promise<SearchRes
       const unseenQuery: Record<string, unknown> = { seen: false };
       debug.unseenQuery = unseenQuery;
 
-      const unseenUids = await client.search(unseenQuery);
+      const unseenUids = ((await client.search(unseenQuery as any)) || []) as number[];
       debug.unseenUidsCount = unseenUids.length;
       debug.unseenUids = unseenUids.slice(0, 20);
 
       if (unseenUids.length === 0) {
         // Tenta buscar TUDO (inclusive lidos) pra ver se há emails na caixa
-        const allUids = await client.search({ uid: true });
+        const allUids = ((await client.search({ all: true } as any)) || []) as number[];
         debug.allUidsCount = allUids.length;
+
 
         return {
           success: true,
@@ -105,10 +106,11 @@ export async function searchEmails(params: EmailSearchParams): Promise<SearchRes
 
         try {
           // Tenta busca com string IMAP nativa
-          const filteredUids = await client.search(filterStr);
+          const filteredUids = ((await client.search(filterStr as any)) || []) as number[];
           debug.filteredUidsCount = filteredUids.length;
           debug.filteredUids = filteredUids.slice(0, 20);
           targetUids = filteredUids;
+
         } catch (searchErr) {
           debug.filterSearchError = String(searchErr);
           // Fallback: usa unseen e filtra manualmente depois
@@ -124,7 +126,8 @@ export async function searchEmails(params: EmailSearchParams): Promise<SearchRes
       const results: EmailResult[] = [];
 
       for await (const msg of client.fetch(
-        { uid: targetUids },
+        { uid: targetUids } as any,
+
         {
           uid: true,
           envelope: true,

@@ -136,7 +136,7 @@ export const Route = createFileRoute("/api/gerar-formularios-colaboradores")({
 
           const zipBuf = await outZip.generateAsync({ type: "uint8array" });
 
-          return new Response(zipBuf, {
+          return new Response(zipBuf as BlobPart as any, {
             status: 200,
             headers: {
               "Content-Type": "application/zip",

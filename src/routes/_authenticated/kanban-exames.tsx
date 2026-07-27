@@ -244,6 +244,8 @@ interface ExameCard {
   data_2_etapa: string | null;
   status: string;
   arquivo_url: string | null;
+  etapa_faltou: number | null;
+  justificativa_falta: string | null;
 }
 
 type CardData = ColaboradorCard | ExameCard;
@@ -419,16 +421,21 @@ function DraggableCard({
             <div className="text-xs text-muted-foreground truncate pl-5">{card.empresa}</div>
           )}
 
-          {/* Status badge */}
+          {/* Status badge + etapa faltou */}
           {card.type === "exame" && (() => {
             const ec = card as ExameCard;
             const st = STATUS_LABEL[ec.status];
             if (!st) return null;
             return (
-              <div className="pl-5">
+              <div className="pl-5 flex flex-wrap gap-1">
                 <Badge variant={st.variant} className="text-[10px] h-4 px-1.5 font-normal">
                   {st.label}
                 </Badge>
+                {ec.etapa_faltou && (
+                  <Badge variant="outline" className="text-[10px] h-4 px-1.5 font-normal border-destructive text-destructive">
+                    Faltou {ec.etapa_faltou}ª etapa
+                  </Badge>
+                )}
               </div>
             );
           })()}
@@ -650,6 +657,12 @@ function KanbanColumn({
 function buildDropPayload(toCol: string, card: ExameCard): Record<string, unknown> | null {
   const today = todayISO();
   switch (toCol) {
+    case "a_agendar":
+      return {
+        status: "faltou",
+        data_agendada: null,
+        // mantém etapa_faltou e justificativa_falta se já existirem
+      };
     case "agendados":
       return {
         status: "agendado",
@@ -678,7 +691,7 @@ function buildDropPayload(toCol: string, card: ExameCard): Record<string, unknow
     case "liberado":
       return { status: "liberado" };
     default:
-      return null; // colunas não mapeadas (a_vencer, vencidos, a_agendar)
+      return null; // colunas não mapeadas (a_vencer, vencidos)
   }
 }
 
@@ -797,7 +810,7 @@ function KanbanExames() {
         }),
       );
 
-    const aAgendar = ativos
+    const aAgendarColabs = ativos
       .filter((c) => c.status === "sem_exame")
       .map(
         (c): ColaboradorCard => ({
@@ -807,6 +820,26 @@ function KanbanExames() {
           nome: c.nome,
           empresa: c.empresa,
           proximo_exame: c.proximo_exame,
+        }),
+      );
+
+    const aAgendarExames = exames
+      .filter((e) => e.status === "faltou")
+      .map(
+        (e): ExameCard => ({
+          type: "exame",
+          id: `ex-${e.id}`,
+          exameId: e.id,
+          colaboradorId: e.colaborador_id,
+          nome: e.colaborador.nome,
+          empresa: e.colaborador.empresa,
+          data_agendada: e.data_agendada,
+          data_1_etapa: e.data_1_etapa,
+          data_2_etapa: e.data_2_etapa,
+          status: e.status,
+          arquivo_url: e.arquivo_url,
+          etapa_faltou: e.etapa_faltou,
+          justificativa_falta: e.justificativa_falta,
         }),
       );
 
@@ -825,6 +858,8 @@ function KanbanExames() {
           data_2_etapa: e.data_2_etapa,
           status: e.status,
           arquivo_url: e.arquivo_url,
+          etapa_faltou: e.etapa_faltou,
+          justificativa_falta: e.justificativa_falta,
         }),
       );
 
@@ -843,11 +878,13 @@ function KanbanExames() {
           data_2_etapa: null,
           status: e.status,
           arquivo_url: e.arquivo_url,
+          etapa_faltou: e.etapa_faltou,
+          justificativa_falta: e.justificativa_falta,
         }),
       );
 
     const primeiraEtapa = exames
-      .filter((e) => e.data_1_etapa && !e.data_2_etapa && e.status !== "liberado")
+      .filter((e) => e.data_1_etapa && !e.data_2_etapa && e.status !== "liberado" && e.status !== "faltou")
       .map(
         (e): ExameCard => ({
           type: "exame",
@@ -861,11 +898,13 @@ function KanbanExames() {
           data_2_etapa: null,
           status: e.status,
           arquivo_url: e.arquivo_url,
+          etapa_faltou: e.etapa_faltou,
+          justificativa_falta: e.justificativa_falta,
         }),
       );
 
     const segundaEtapa = exames
-      .filter((e) => e.data_2_etapa && e.status !== "liberado")
+      .filter((e) => e.data_2_etapa && e.status !== "liberado" && e.status !== "faltou")
       .map(
         (e): ExameCard => ({
           type: "exame",
@@ -879,6 +918,8 @@ function KanbanExames() {
           data_2_etapa: e.data_2_etapa,
           status: e.status,
           arquivo_url: e.arquivo_url,
+          etapa_faltou: e.etapa_faltou,
+          justificativa_falta: e.justificativa_falta,
         }),
       );
 
@@ -897,13 +938,15 @@ function KanbanExames() {
           data_2_etapa: e.data_2_etapa,
           status: e.status,
           arquivo_url: e.arquivo_url,
+          etapa_faltou: e.etapa_faltou,
+          justificativa_falta: e.justificativa_falta,
         }),
       );
 
     return {
       a_vencer: aVencer,
       vencidos,
-      a_agendar: aAgendar,
+      a_agendar: [...aAgendarColabs, ...aAgendarExames],
       agendados,
       primeira_etapa: primeiraEtapa,
       segunda_etapa: segundaEtapa,
@@ -1064,9 +1107,10 @@ function KanbanExames() {
     if (!faltouCard) return;
     const etapaNum = parseInt(payload.etapa, 10);
     const card = faltouCard;
-    // Se faltou, volta para agendado para poder reagendar
+    // Se faltou, vai para "a_agendar" para poder reagendar
     const faltouPayload: Record<string, unknown> = {
-      status: "agendado",
+      status: "faltou",
+      data_agendada: null,
       justificativa_falta: payload.justificativa,
       etapa_faltou: etapaNum,
     };
