@@ -1,23 +1,46 @@
-// POST /api/login — autenticação contra banco de dados (pg direto, sem Prisma WASM)
+// POST /api/login — autenticação via Postgres (client fresco por request p/ evitar conexões mortas do pooler)
 import { createFileRoute } from "@tanstack/react-router";
-import { Pool } from "pg";
+import { Client } from "pg";
 import { verifyPassword, createToken } from "@/lib/auth.server";
 
-let _pool: Pool | null = null;
-function getPool(): Pool {
-  if (!_pool) {
-    _pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      max: 3,
-      idleTimeoutMillis: 30000,
+async function queryUser(username: string) {
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) throw new Error("DATABASE_URL não configurado");
+
+  const ssl =
+    process.env.DATABASE_SSL === "false" ? false : { rejectUnauthorized: false };
+
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const client = new Client({
+      connectionString,
+      ssl,
       connectionTimeoutMillis: 10000,
-      ssl:
-        process.env.DATABASE_SSL === "false"
-          ? false
-          : { rejectUnauthorized: process.env.NODE_ENV === "production" },
+      statement_timeout: 10000,
+      query_timeout: 10000,
+      keepAlive: true,
     });
+    try {
+      await client.connect();
+      const { rows } = await client.query(
+        `SELECT id, username, password_hash, full_name, role, ativo
+         FROM users WHERE username = $1 LIMIT 1`,
+        [username],
+      );
+      return rows[0];
+    } catch (err) {
+      lastErr = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      // Erros típicos de pooler morto → tentar novamente
+      if (!/terminated|ECONNRESET|ETIMEDOUT|socket|EPIPE/i.test(msg) || attempt === 3) {
+        throw err;
+      }
+      await new Promise((r) => setTimeout(r, 150 * attempt));
+    } finally {
+      client.end().catch(() => {});
+    }
   }
-  return _pool;
+  throw lastErr;
 }
 
 export const Route = createFileRoute("/api/login")({
@@ -25,7 +48,7 @@ export const Route = createFileRoute("/api/login")({
     handlers: {
       POST: async ({ request }) => {
         try {
-          const body = await request.json();
+          const body = await request.json().catch(() => ({}));
           const { username, password } = body || {};
 
           if (!username || !password) {
@@ -35,12 +58,7 @@ export const Route = createFileRoute("/api/login")({
             );
           }
 
-          const { rows } = await getPool().query(
-            `SELECT id, username, password_hash, full_name, role, ativo
-             FROM users WHERE username = $1 LIMIT 1`,
-            [username],
-          );
-          const user = rows[0];
+          const user = await queryUser(String(username));
 
           if (!user || !user.ativo) {
             return Response.json(
@@ -49,7 +67,7 @@ export const Route = createFileRoute("/api/login")({
             );
           }
 
-          const valid = await verifyPassword(password, user.password_hash);
+          const valid = await verifyPassword(String(password), user.password_hash);
           if (!valid) {
             return Response.json(
               { ok: false, error: "Usuário ou senha inválidos" },
