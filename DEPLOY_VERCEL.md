@@ -27,7 +27,8 @@ Production + Preview + Development):
 | `SUPABASE_URL` | `https://gdsnytnolhvgxemuopux.supabase.co` |
 | `SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_H9x185vDR3LqFn6jr4Jcpg_6uQg56HM` |
 | `SUPABASE_SERVICE_ROLE_KEY` | copie do painel **Cloud** do Lovable |
-| `SUPABASE_DB_URL` / `DATABASE_URL` | copie do painel **Cloud** do Lovable |
+| `SUPABASE_DB_URL` / `DATABASE_URL` | copie do painel **Cloud** do Lovable e use porta `6543` no host `pooler` |
+| `DATABASE_POOL_PORT` | `6543` |
 | `LOVABLE_API_KEY` | copie do painel **Cloud** do Lovable (necessário para Lovable AI) |
 
 ### Frontend (expostas ao browser)
