@@ -8,16 +8,15 @@ import { r as QueryClientProvider } from "../_libs/tanstack__react-query.mjs";
 import { t as Toaster } from "../_libs/sonner.mjs";
 import { t as require_imap_flow } from "../_libs/imapflow+[...].mjs";
 import { t as require_nodemailer } from "../_libs/nodemailer.mjs";
-import { n as Pool, t as PrismaPgAdapterFactory } from "../_libs/@prisma/adapter-pg.mjs";
 import { n as jwtVerify, t as SignJWT } from "../_libs/jose.mjs";
 import { t as bcryptjs_default } from "../_libs/bcryptjs.mjs";
 import { t as require_lib } from "../_libs/jszip+[...].mjs";
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "fs";
 import path, { resolve } from "path";
-import * as clientPkg from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import fs from "fs/promises";
-//#region node_modules/.nitro/vite/services/ssr/assets/router-lHMkLBx6.js
+//#region node_modules/.nitro/vite/services/ssr/assets/router-CdH2Coek.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var import_nodemailer = /* @__PURE__ */ __toESM(require_nodemailer());
@@ -355,23 +354,14 @@ var Route$28 = createFileRoute("/_authenticated")({
 });
 var $$splitComponentImporter$11 = () => import("./routes-CA4QZDvu.mjs");
 var Route$27 = createFileRoute("/")({ component: lazyRouteComponent($$splitComponentImporter$11, "component") });
-var PrismaClient = clientPkg["PrismaClient"];
 /**
 * Prisma Client para uso server-side.
-* Usa adapter pg para conexão direta ao PostgreSQL.
 * Sem singleton global para evitar cache obsoleto em hot-reload.
 */
 var _prisma = null;
 function createPrisma() {
-	const adapter = new PrismaPgAdapterFactory(new Pool({
-		connectionString: process.env.DATABASE_URL,
-		max: 5,
-		idleTimeoutMillis: 3e4,
-		connectionTimeoutMillis: 1e4,
-		ssl: process.env.DATABASE_SSL === "false" ? false : { rejectUnauthorized: true }
-	}));
 	try {
-		return new PrismaClient({ adapter });
+		return new PrismaClient({ datasources: { db: { url: process.env.DATABASE_URL } } });
 	} catch (err) {
 		console.error("[prisma.server] Erro ao criar PrismaClient:", err);
 		throw err;
@@ -1027,7 +1017,7 @@ var Route$20 = createFileRoute("/api/colaboradores")({ server: { handlers: {
 var Route$19 = createFileRoute("/api/apply-migrations")({ server: { handlers: { POST: async ({ request }) => {
 	try {
 		await requireRole(request, "admin");
-		const { Pool } = await import("../_libs/@prisma/adapter-pg.mjs").then((n) => n.r);
+		const { Pool } = await import("../_libs/pg.mjs").then((n) => n.t);
 		const pool = new Pool({
 			connectionString: process.env.DATABASE_URL,
 			ssl: { rejectUnauthorized: false },
@@ -1292,7 +1282,7 @@ var Route$6 = createFileRoute("/api/exames/enviar-confirmacao")({ server: { hand
 			user: emailConfig.email_address,
 			pass_len: password?.length ?? 0
 		});
-		const { createTransporter } = await import("./email-smtp-MwSE42YV.mjs");
+		const { createTransporter } = await import("./email-smtp-C7QRgIlL.mjs");
 		const testTransporter = createTransporter({
 			host: smtpHost,
 			port: emailConfig.smtp_port ?? 587,

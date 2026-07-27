@@ -1,35 +1,20 @@
-// @prisma/client é CJS — usamos import * para garantir acesso ao PrismaClient
-import * as clientPkg from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
-
-// Bracket notation impede o bundler de otimizar para `import { PrismaClient }`
-const PrismaClient: any = (clientPkg as any)["PrismaClient" as string];
-type PrismaClient = any;
+import { PrismaClient } from "@prisma/client";
 
 /**
  * Prisma Client para uso server-side.
- * Usa adapter pg para conexão direta ao PostgreSQL.
  * Sem singleton global para evitar cache obsoleto em hot-reload.
  */
 let _prisma: PrismaClient | null = null;
 
 function createPrisma(): PrismaClient {
-
-  const isProd = process.env.NODE_ENV === "production";
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    max: isProd ? 5 : 10,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 10000,
-    ssl: process.env.DATABASE_SSL === "false" ? false : { rejectUnauthorized: isProd },
-  });
-
-  const adapter = new PrismaPg(pool);
-
   try {
-    return new PrismaClient({ adapter });
+    return new PrismaClient({
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
+    });
   } catch (err) {
     console.error("[prisma.server] Erro ao criar PrismaClient:", err);
     throw err;

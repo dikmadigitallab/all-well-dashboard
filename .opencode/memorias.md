@@ -74,6 +74,52 @@ O Vercel **ignora** o `node_modules/` traçado pelo Nitro e recria as dependênc
 ### Autoria
 VIBECODE
 
+## Sessão: 2026-07-27 — Fix erro WASM (2ª tentativa) — Downgrade Prisma v7 → v6
+
+### Problema
+Após o patch do client (que trocou `edge.js` por `index.js`), o Lovable passou a exibir:
+`WebAssembly.Module(): Wasm code generation disallowed by embedder`
+
+Isso ocorre porque o **Prisma v7** usa o WASM query compiler **sempre**, mesmo com `engineType = "library"`. O runtime do Lovable simplesmente não permite `WebAssembly.Module()`.
+
+### Solução
+**Downgrade do Prisma v7.8.0 → v6.19.3** — o v6 não tem o WASM compiler, usa o engine binário nativo (Rust).
+
+### Mudanças
+
+**1. `package.json`**
+- `@prisma/client`: `^7.8.0` → `^6.19.3`
+- `prisma`: `^7.8.0` → `^6.19.3`
+- `@prisma/adapter-pg`: **removido** (era específico do v7)
+- `allowScripts`: versões atualizadas para v6
+
+**2. `prisma/schema.prisma`**
+- Removido `engineType = "library"` (não existe no v6)
+- Adicionado `url = env("DATABASE_URL")` (obrigatório no v6)
+- Mantido `binaryTargets = ["native", "linux-musl-openssl-3.0.x"]`
+
+**3. `src/lib/prisma.server.ts`**
+- Removido `PrismaPg` adapter e `Pool` do `pg`
+- Agora usa `new PrismaClient({ datasources: { db: { url: process.env.DATABASE_URL } } })` (padrão v6)
+
+**4. `vite.config.ts`**
+- Removido `@prisma/adapter-pg` dos externals
+- Mantido `@prisma/engines`, `.prisma/client`, etc.
+
+**5. `scripts/clean-function-package.mjs`**
+- Versão do `@prisma/engines` agora usa a mesma do `@prisma/client` (v6)
+
+### Client Gerado (v6)
+- Usa `@prisma/client/runtime/library.js` (engine binário)
+- `config.engineWasm = undefined` e `config.compilerWasm = undefined` → **zero WASM**
+- Patch ainda funciona e bloqueia condições edge (mas não é mais crítico)
+
+### Build
+- ✅ `npm run build` passa sem erros
+
+### Autoria
+VIBECODE
+
 ## Sessão: 2026-07-27 — Fix login (Lovable RUNTIME_ERROR + pool size)
 
 ### Problema

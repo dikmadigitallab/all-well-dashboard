@@ -15,6 +15,13 @@
 ## Problemas Resolvidos
 1. **❌ Blank screen no Lovable**: `jspdf`/`jspdf-autotable` não instalados → build quebrava nas páginas que importam `reports.ts`. Agora instalados.
 2. **❌ Pool size**: Login criava `new Client()` por requisição (~3 tentativas cada) → podia exaurir pooler Supabase. Agora usa pool compartilhado do Prisma (max 5/10).
+3. **❌ `No such module "wasm/query_compiler_fast_bg-*.wasm"` + `WebAssembly.Module() disallowed by embedder`**: Prisma v7 usava WASM query compiler incompatível com Lovable. Resolvido com downgrade para Prisma v6 (engine binário nativo, zero WASM).
+
+## Últimas Alterações
+- **Protocolo**: Prisma v7 → v6.19.3
+- `@prisma/adapter-pg` removido
+- `prisma.server.ts`: simplificado para `new PrismaClient()` padrão
+- `schema.prisma`: `url = env("DATABASE_URL")` adicionado, `engineType` removido
 
 ## A Fazer
-- [ ] Commitar, push e testar deploy na Vercel
+- [ ] Testar login no Lovable

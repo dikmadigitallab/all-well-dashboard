@@ -18,7 +18,6 @@ export default defineConfig({
         ".prisma/client",
         ".prisma",
         "prisma",
-        "@prisma/adapter-pg",
         "@prisma/engines",
         "pg",
         "tslib",
@@ -27,7 +26,7 @@ export default defineConfig({
   } as any,
   vite: {
     ssr: {
-      external: ["@prisma/client", ".prisma/client", "@prisma/adapter-pg", "@prisma/engines", "pg"],
+      external: ["@prisma/client", ".prisma/client", "@prisma/engines", "pg"],
     },
   },
 } as any);

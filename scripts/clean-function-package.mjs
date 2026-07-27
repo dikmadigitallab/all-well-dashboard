@@ -35,13 +35,12 @@ try {
     changed = true;
   }
 
-  // Garante @prisma/engines (engine binário necessário com engineType = "library")
-  const enginesVersion = rootPkg.dependencies?.["@prisma/engines"] ||
-    rootPkg.devDependencies?.["@prisma/engines"] ||
-    "^7.8.0";
+  // Garante @prisma/engines (engine binário necessário em runtime serverless)
+  // Usa a mesma versão do @prisma/client para consistência
+  const clientVersion = rootPkg.dependencies?.["@prisma/client"] || "^6.19.3";
   if (!deps["@prisma/engines"]) {
-    deps["@prisma/engines"] = enginesVersion;
-    console.log(`📦 Adicionado @prisma/engines@${enginesVersion} ao package.json da função`);
+    deps["@prisma/engines"] = clientVersion;
+    console.log(`📦 Adicionado @prisma/engines@${clientVersion} ao package.json da função`);
     changed = true;
   }
 
