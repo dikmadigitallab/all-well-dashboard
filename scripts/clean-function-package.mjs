@@ -35,6 +35,16 @@ try {
     changed = true;
   }
 
+  // Garante @prisma/engines (engine binário necessário com engineType = "library")
+  const enginesVersion = rootPkg.dependencies?.["@prisma/engines"] ||
+    rootPkg.devDependencies?.["@prisma/engines"] ||
+    "^7.8.0";
+  if (!deps["@prisma/engines"]) {
+    deps["@prisma/engines"] = enginesVersion;
+    console.log(`📦 Adicionado @prisma/engines@${enginesVersion} ao package.json da função`);
+    changed = true;
+  }
+
   if (changed) {
     funcPkg.dependencies = deps;
     writeFileSync(funcPkgPath, JSON.stringify(funcPkg, null, 2) + "\n");

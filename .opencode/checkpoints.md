@@ -4,8 +4,9 @@
 - Build local: ✅ passa com `npm run build`
 - Login refatorado para usar Prisma pool (não cria conexões avulsas)
 - `jspdf`/`jspdf-autotable` instalados (estavam faltando)
-- Estratégia Vercel: `tslib` externalizado + forçado no `package.json` da função
-- `.prisma` removido do `package.json` da função
+- Prisma client patcheado pós-generate para evitar `edge.js` (causa do erro WASM no Lovable)
+- `engineType = "library"` + `binaryTargets` configurados no schema.prisma
+- `@prisma/engines` incluído no package.json da função Vercel
 
 ## Últimas Alterações
 - `src/routes/api/login.ts`: refatorado para usar `prisma.user.findUnique()` via pool compartilhado (removeu `Client` do `pg`, retry manual e funções auxiliares)

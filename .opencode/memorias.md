@@ -37,6 +37,43 @@ O Vercel **ignora** o `node_modules/` traçado pelo Nitro e recria as dependênc
 - Usuário fazer commit, push e redeploy no Vercel
 - Se falhar, tentar abordagem inline com alias no Nitro (`nitro.rollupConfig.plugins`)
 
+## Sessão: 2026-07-27 — Fix erro WASM Prisma v7 no Lovable
+
+### Problema
+- Lovable exibia: `Erro interno: No such module "wasm/query_compiler_fast_bg-34bd5a009b666ebc.wasm"`
+- Causa raiz: Prisma v7 usa **WASM query compiler** por padrão, e o client `edge.js` carrega o `.wasm` via `import()` dinâmico, que quebra no Lovable/Vercel porque o bundler Vite/Nitro renomeia o arquivo com hash
+- O `engineType` não estava especificado no schema, então o default do Prisma v7 (`"wasm"`) era usado
+
+### Correções
+
+**1. `prisma/schema.prisma`**
+- Adicionado `engineType = "library"` — usa o engine binário clássico (mais compatível com serverless)
+- Adicionado `binaryTargets = ["native", "linux-musl-openssl-3.0.x"]` — necessario para deploy Vercel (linux-musl)
+
+**2. `scripts/patch-prisma-client.mjs` (NOVO)**
+- Patch pós-`prisma generate` que modifica `.prisma/client/package.json`:
+  - Força `#main-entry-point` a usar `./index.js` em TODAS as condições (edge-light, workerd, worker)
+  - Força `exports["."]` e `exports["./client"]` a usar `./index.js` em todas as condições
+  - Substitui `#wasm-compiler-loader` por um loader seguro baseado em base64 (`wasm-safe-loader.mjs`)
+- Isso impede que o runtime carregue `edge.js` (que faz `import()` dinâmico do `.wasm`)
+
+**3. `package.json`**
+- `postinstall` atualizado: `prisma generate && node scripts/patch-prisma-client.mjs` — o patch roda automaticamente em cada `npm install`
+
+**4. `scripts/clean-function-package.mjs`**
+- Adicionado `@prisma/engines` ao package.json da função Vercel (necessário para o engine binário)
+
+**5. `vite.config.ts`**
+- Adicionado `@prisma/engines` aos externals (nitro + vite.ssr)
+
+### Build
+- ✅ `npm run build` passa sem erros
+- ✅ Nenhum erro WASM no build
+- ✅ Function package.json inclui `@prisma/engines`
+
+### Autoria
+VIBECODE
+
 ## Sessão: 2026-07-27 — Fix login (Lovable RUNTIME_ERROR + pool size)
 
 ### Problema
