@@ -1,6 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
-import { prisma } from "./prisma.server";
 
 // ---------------------------------------------------------------------------
 // Helpers

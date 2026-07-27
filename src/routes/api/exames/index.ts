@@ -1,8 +1,26 @@
 // GET /api/exames — listar agendamentos
 // POST /api/exames — criar novo agendamento
 import { createFileRoute } from "@tanstack/react-router";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma.server";
 import { requireAuth } from "@/lib/auth.server";
+
+const EXAME_STATUS_VALUES = [
+  "a_vencer",
+  "agendado",
+  "compareceu",
+  "faltou",
+  "pendente",
+  "cancelado",
+  "realizado",
+  "liberado",
+] as const;
+
+type ExameStatusValue = (typeof EXAME_STATUS_VALUES)[number];
+
+function isExameStatus(value: string): value is ExameStatusValue {
+  return EXAME_STATUS_VALUES.includes(value as ExameStatusValue);
+}
 
 export const Route = createFileRoute("/api/exames/")({
   server: {
@@ -14,7 +32,9 @@ export const Route = createFileRoute("/api/exames/")({
           const url = new URL(request.url);
           const statusFilter = url.searchParams.get("status");
 
-          const where = statusFilter ? { status: statusFilter } : {};
+          const where: Prisma.ExameWhereInput = statusFilter && isExameStatus(statusFilter)
+            ? { status: statusFilter }
+            : {};
 
           const exames = await prisma.exame.findMany({
             where,
