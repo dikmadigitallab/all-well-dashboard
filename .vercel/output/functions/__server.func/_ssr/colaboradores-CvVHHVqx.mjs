@@ -6,15 +6,15 @@ import { n as useAuth } from "./use-auth-LCVRQC72.mjs";
 import { n as PageHeader, t as PageContainer } from "./page-header-s_STzGKq.mjs";
 import { r as cn, t as Button } from "./button-PwNqyxv_.mjs";
 import { t as Input } from "./input-uzm9g8Y7.mjs";
+import { i as statusBadge, n as formatCPF, r as formatDate } from "./colaboradores-D6aiYvsj.mjs";
+import { i as writeSync, r as utils } from "../_libs/xlsx.mjs";
+import { t as require_FileSaver_min } from "../_libs/file-saver.mjs";
 import { g as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as useQuery } from "../_libs/tanstack__react-query.mjs";
 import { n as toast } from "../_libs/sonner.mjs";
 import { F as ChevronRight, G as ArrowUpDown, I as ChevronLeft, O as Download, R as Check, W as ArrowUp, f as Search, h as Plus, q as ArrowDown, s as SquareCheckBig, w as FileText, y as LoaderCircle } from "../_libs/lucide-react.mjs";
 import { n as CheckboxIndicator, t as Checkbox$1 } from "../_libs/@radix-ui/react-checkbox+[...].mjs";
 import { a as SelectValue, i as SelectTrigger, n as SelectContent, r as SelectItem, t as Select } from "./select-DamjaduW.mjs";
-import { i as statusBadge, n as formatCPF, r as formatDate } from "./colaboradores-D6aiYvsj.mjs";
-import { i as writeSync, r as utils } from "../_libs/xlsx.mjs";
-import { t as require_FileSaver_min } from "../_libs/file-saver.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/colaboradores-CvVHHVqx.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();

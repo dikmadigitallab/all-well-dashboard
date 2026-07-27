@@ -4,13 +4,13 @@ import { i as require_react } from "../_libs/dnd-kit__accessibility+react.mjs";
 import { F as require_jsx_runtime } from "../_libs/@radix-ui/react-alert-dialog+[...].mjs";
 import { n as PageHeader, t as PageContainer } from "./page-header-s_STzGKq.mjs";
 import { r as cn, t as Button } from "./button-PwNqyxv_.mjs";
+import { t as STATUS_LABEL } from "./colaboradores-D6aiYvsj.mjs";
 import { n as useQuery } from "../_libs/tanstack__react-query.mjs";
 import { B as Calendar, M as CircleCheck, a as TriangleAlert, j as CircleX, m as RotateCcw, n as Users } from "../_libs/lucide-react.mjs";
 import { t as ptBR, u as format } from "../_libs/date-fns.mjs";
 import { t as Calendar$1 } from "./calendar-BHsBzqjb.mjs";
 import { n as PopoverContent, r as PopoverTrigger, t as Popover } from "./popover-CtDpYC8D.mjs";
 import { a as SelectValue, i as SelectTrigger, n as SelectContent, r as SelectItem, t as Select } from "./select-DamjaduW.mjs";
-import { t as STATUS_LABEL } from "./colaboradores-D6aiYvsj.mjs";
 import { a as XAxis, c as Bar, d as ResponsiveContainer, f as Tooltip, i as YAxis, l as Pie, n as BarChart, o as Line, p as Legend, r as LineChart, s as CartesianGrid, t as PieChart, u as Cell } from "../_libs/recharts+[...].mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/dashboard-DmceRK7d.js
 var import_react = /* @__PURE__ */ __toESM(require_react());

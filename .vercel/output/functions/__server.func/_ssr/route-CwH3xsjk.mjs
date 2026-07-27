@@ -4,13 +4,13 @@ import { i as require_react } from "../_libs/dnd-kit__accessibility+react.mjs";
 import { F as require_jsx_runtime } from "../_libs/@radix-ui/react-alert-dialog+[...].mjs";
 import { n as useAuth } from "./use-auth-LCVRQC72.mjs";
 import { r as cn, t as Button } from "./button-PwNqyxv_.mjs";
+import { r as formatDate } from "./colaboradores-D6aiYvsj.mjs";
 import { _ as Navigate, f as Outlet, g as Link, l as useLocation, v as useNavigate } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as useQuery } from "../_libs/tanstack__react-query.mjs";
 import { E as Eye, H as Bell, L as ChevronDown, V as CalendarPlus, _ as Mail, b as LayoutDashboard, c as ShieldCheck, i as Upload, k as Columns3, n as Users, v as LogOut, w as FileText } from "../_libs/lucide-react.mjs";
 import { n as PopoverContent, r as PopoverTrigger, t as Popover } from "./popover-CtDpYC8D.mjs";
 import { t as Badge } from "./badge-B3f60TId.mjs";
 import { t as Separator } from "./separator-UwBgvWUO.mjs";
-import { r as formatDate } from "./colaboradores-D6aiYvsj.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/route-CwH3xsjk.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();

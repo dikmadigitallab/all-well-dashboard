@@ -37,5 +37,37 @@ O Vercel **ignora** o `node_modules/` traçado pelo Nitro e recria as dependênc
 - Usuário fazer commit, push e redeploy no Vercel
 - Se falhar, tentar abordagem inline com alias no Nitro (`nitro.rollupConfig.plugins`)
 
+## Sessão: 2026-07-27 — Fix login (Lovable RUNTIME_ERROR + pool size)
+
+### Problema
+- Login no Lovable resultava em tela branca com `RUNTIME_ERROR`
+- Suspeita de estouro de pool de conexão
+- Build local falhava com `ERR_MODULE_NOT_FOUND` para `jspdf`
+
+### Diagnóstico
+
+**1. Dependências faltando**
+- `jspdf` e `jspdf-autotable` estavam em `package.json` mas NÃO instalados em `node_modules/`
+- Isso quebrava o build e causava blank screen nas páginas que importam `reports.ts` (colaboradores, relatórios)
+
+**2. Login criava conexões avulsas ao banco**
+- `routes/api/login.ts` usava `new Client()` do `pg` em cada requisição
+- Isso criava conexões FORA do pool do Prisma, podendo exaurir o pooler do Supabase (~15 conexões limite)
+- Retry de 3 tentativas agravava o problema
+
+### Correções
+
+**`src/routes/api/login.ts`** — Refatorado para usar Prisma:
+- Removeu `Client` do `pg`, `getDatabaseConnectionString()`, `queryUser()` (~60 linhas)
+- Agora usa `prisma.user.findUnique()` via pool compartilhado
+- Reduz conexões paralelas e respeita `max: 5/10` configurado no pool
+
+**`node_modules/`** — Instalado `jspdf` e `jspdf-autotable`:
+- `npm install` baixou os 23 pacotes ausentes
+
+### Build
+- ✅ `npm run build` passa sem erros
+- ✅ `jspdf` e `jspdf-autotable` inclusos no bundle server-side
+
 ### Autoria
 VIBECODE
