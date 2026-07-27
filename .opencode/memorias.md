@@ -154,3 +154,21 @@ VIBECODE
 
 ### Autoria
 VIBECODE
+
+## Sessão: 2026-07-27 — Fix binaryTarget para Vercel Node.js 20.x
+
+### Problema
+Após downgrade Prisma v7 → v6, a página ficava "indisponível" no Lovable. Causa: o `binaryTargets` usava `linux-musl-openssl-3.0.x` (Alpine/musl), mas o runtime Vercel Node.js 20.x é Amazon Linux 2023 (GLIBC, `rhel-openssl-3.0.x`). O engine .so.node compilado para musl não carregava via `process.dlopen` num sistema GLIBC.
+
+### Correção
+- `prisma/schema.prisma`: `binaryTargets` alterado de `["native", "linux-musl-openssl-3.0.x"]` para `["native", "rhel-openssl-3.0.x"]`
+- `prisma generate` baixou o engine `libquery_engine-rhel-openssl-3.0.x.so.node`
+- Build `.vercel/output/` agora contém apenas o engine correto
+
+### Build
+- ✅ `prisma generate` com sucesso
+- ✅ `npm run build` passa sem erros
+- ✅ Engine correto no output function
+
+### Autoria
+VIBECODE

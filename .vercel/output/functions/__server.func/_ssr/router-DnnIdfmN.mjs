@@ -16,7 +16,7 @@ import { existsSync, readFileSync, readdirSync } from "fs";
 import path, { resolve } from "path";
 import { PrismaClient } from "@prisma/client";
 import fs from "fs/promises";
-//#region node_modules/.nitro/vite/services/ssr/assets/router-CdH2Coek.js
+//#region node_modules/.nitro/vite/services/ssr/assets/router-DnnIdfmN.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var import_nodemailer = /* @__PURE__ */ __toESM(require_nodemailer());
@@ -361,7 +361,7 @@ var Route$27 = createFileRoute("/")({ component: lazyRouteComponent($$splitCompo
 var _prisma = null;
 function createPrisma() {
 	try {
-		return new PrismaClient({ datasources: { db: { url: process.env.DATABASE_URL } } });
+		return new PrismaClient({ datasourceUrl: process.env.DATABASE_URL });
 	} catch (err) {
 		console.error("[prisma.server] Erro ao criar PrismaClient:", err);
 		throw err;
@@ -1282,7 +1282,7 @@ var Route$6 = createFileRoute("/api/exames/enviar-confirmacao")({ server: { hand
 			user: emailConfig.email_address,
 			pass_len: password?.length ?? 0
 		});
-		const { createTransporter } = await import("./email-smtp-C7QRgIlL.mjs");
+		const { createTransporter } = await import("./email-smtp-BwWETvwS.mjs");
 		const testTransporter = createTransporter({
 			host: smtpHost,
 			port: emailConfig.smtp_port ?? 587,

@@ -9,11 +9,7 @@ let _prisma: PrismaClient | null = null;
 function createPrisma(): PrismaClient {
   try {
     return new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL,
-        },
-      },
+      datasourceUrl: process.env.DATABASE_URL,
     });
   } catch (err) {
     console.error("[prisma.server] Erro ao criar PrismaClient:", err);
