@@ -13,7 +13,7 @@ type LoginUserRow = {
 };
 
 function getDatabaseConnectionString(): string {
-  const rawUrl = process.env.DATABASE_URL || process.env.SUPABASE_DB_URL;
+  const rawUrl = process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
   if (!rawUrl) throw new Error("DATABASE_URL ou SUPABASE_DB_URL não definido");
 
   const poolPort = process.env.DATABASE_POOL_PORT;
