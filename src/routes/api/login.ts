@@ -1,7 +1,6 @@
-// POST /api/login — autenticação direta no Postgres para evitar dependência do Prisma no runtime
+// POST /api/login — autenticação via Data API (service role), compatível com runtime edge/Workers
 import { createFileRoute } from "@tanstack/react-router";
 import { verifyPassword, createToken } from "@/lib/auth.server";
-import { Client } from "pg";
 
 type LoginUserRow = {
   id: string;
@@ -12,65 +11,16 @@ type LoginUserRow = {
   ativo: boolean;
 };
 
-function getDatabaseConnectionString(): string {
-  const rawUrl = process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
-  if (!rawUrl) throw new Error("DATABASE_URL ou SUPABASE_DB_URL não definido");
-
-  const poolPort = process.env.DATABASE_POOL_PORT;
-  if (!poolPort) return rawUrl;
-
-  try {
-    const url = new URL(rawUrl);
-    if (url.hostname.includes("pooler")) {
-      url.port = poolPort;
-    }
-    return url.toString();
-  } catch {
-    return rawUrl;
-  }
-}
-
-function shouldRetryConnection(error: unknown): boolean {
-  const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
-  return (
-    message.includes("terminated") ||
-    message.includes("econnreset") ||
-    message.includes("connection") ||
-    message.includes("timeout")
-  );
-}
-
 async function findUserByUsername(username: string): Promise<LoginUserRow | null> {
-  let lastError: unknown;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await (supabaseAdmin as any)
+    .from("users")
+    .select("id, username, password_hash, full_name, role, ativo")
+    .eq("username", username)
+    .maybeSingle();
 
-  for (let attempt = 1; attempt <= 3; attempt += 1) {
-    const client = new Client({
-      connectionString: getDatabaseConnectionString(),
-      ssl: { rejectUnauthorized: false },
-      connectionTimeoutMillis: 10_000,
-      query_timeout: 10_000,
-      keepAlive: true,
-    });
-
-    try {
-      await client.connect();
-      const result = await client.query<LoginUserRow>(
-        `select id, username, password_hash, full_name, role::text as role, ativo
-         from public.users
-         where username = $1
-         limit 1`,
-        [username],
-      );
-      return result.rows[0] ?? null;
-    } catch (error) {
-      lastError = error;
-      if (attempt === 3 || !shouldRetryConnection(error)) throw error;
-    } finally {
-      await client.end().catch(() => undefined);
-    }
-  }
-
-  throw lastError;
+  if (error) throw new Error(error.message);
+  return (data as LoginUserRow | null) ?? null;
 }
 
 export const Route = createFileRoute("/api/login")({
@@ -79,7 +29,10 @@ export const Route = createFileRoute("/api/login")({
       POST: async ({ request }) => {
         try {
           const body = await request.json().catch(() => ({}));
-          const { username, password } = body || {};
+          const { username, password } = (body || {}) as {
+            username?: string;
+            password?: string;
+          };
 
           if (!username || !password) {
             return Response.json(
@@ -125,10 +78,7 @@ export const Route = createFileRoute("/api/login")({
         } catch (err) {
           console.error("[login]", err);
           const msg = err instanceof Error ? err.message : String(err);
-          return Response.json(
-            { ok: false, error: `Erro interno: ${msg}` },
-            { status: 500 },
-          );
+          return Response.json({ ok: false, error: `Erro interno: ${msg}` }, { status: 500 });
         }
       },
     },
